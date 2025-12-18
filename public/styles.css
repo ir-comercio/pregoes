@@ -169,7 +169,7 @@ h1 {
 }
 
 /* BOTÕES DE FILTRO (estilo Tabela de Preços) */
-.brand-button, .vendedor-button {
+.brand-button, .vendedor-button, .mes-button {
     background: var(--input-bg);
     border: 1px solid var(--border-color);
     color: var(--text-primary);
@@ -182,13 +182,13 @@ h1 {
     text-transform: uppercase;
 }
 
-.brand-button:hover, .vendedor-button:hover {
+.brand-button:hover, .vendedor-button:hover, .mes-button:hover {
     background: rgba(204, 112, 0, 0.1);
     border-color: var(--primary);
     color: var(--primary);
 }
 
-.brand-button.active, .vendedor-button.active {
+.brand-button.active, .vendedor-button.active, .mes-button.active {
     background: var(--primary);
     border-color: var(--primary);
     color: white;
@@ -604,6 +604,82 @@ tbody tr.ganho:hover {
 .floating-add-btn svg {
     width: 28px;
     height: 28px;
+}
+
+/* TABELA DE ITENS (estilo Excel) */
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+}
+
+.items-table th,
+.items-table td {
+    border: 1px solid var(--border-color);
+    padding: 8px;
+    vertical-align: middle;
+}
+
+.items-table th {
+    background: var(--th-bg);
+    color: var(--th-color);
+    font-weight: 600;
+    text-align: center;
+    font-size: 0.8rem;
+}
+
+.items-table input[type="text"],
+.items-table input[type="number"],
+.items-table textarea {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 0.85rem;
+}
+
+.items-table textarea {
+    resize: vertical;
+    min-height: 40px;
+    font-family: inherit;
+}
+
+.items-table input[readonly] {
+    background: var(--bg-card);
+    cursor: not-allowed;
+}
+
+.items-table tr.excede-estimado {
+    background: rgba(220, 38, 38, 0.1) !important;
+}
+
+.items-table tr.excede-estimado td {
+    background: rgba(220, 38, 38, 0.05);
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0;
+    margin: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.close-modal:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--danger-color);
 }
 
 .hidden { display: none !important; }
