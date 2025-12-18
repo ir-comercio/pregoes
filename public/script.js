@@ -1,714 +1,1163 @@
-/* VARIÁVEIS BASE */
-:root {
-    --primary: #CC7000;
-    --bg-primary: #000000;
-    --bg-secondary: #000000c7;
-    --bg-card: #1A1A1A;
-    --text-primary: #FFFFFF;
-    --text-secondary: #A0A0A0;
-    --border-color: rgba(204, 112, 0, 0.08);
-    --input-bg: #2A2A2A;
-    --success-color: #22C55E;
-    --warning-color: #F59E0B;
-    --danger-color: #DC2626;
-    --table-stripe: #1F1F1F;
-    --table-hover: rgba(128, 128, 128, 0.15);
-    --card-shadow: none;
-    --th-bg: #4A4A4A;
-    --th-color: #FFFFFF;
-    --th-border: #5A5A5A;
-    --shadow: rgba(0, 0, 0, 0.3);
-    --btn-register: #0077c7;
-    --btn-delete: #e70000;
-    --btn-edit: #777777;
-    --btn-view: #fa7000;
-    --btn-save: #00cc77;
+// ============================================
+// CONFIGURAÇÃO
+// ============================================
+let pregoes = [];
+let mesSelecionado = 'TODOS';
+let mesesDisponiveis = new Set();
+
+const mesesNomes = {
+    '01': 'JANEIRO', '02': 'FEVEREIRO', '03': 'MARÇO', '04': 'ABRIL',
+    '05': 'MAIO', '06': 'JUNHO', '07': 'JULHO', '08': 'AGOSTO',
+    '09': 'SETEMBRO', '10': 'OUTUBRO', '11': 'NOVEMBRO', '12': 'DEZEMBRO'
+};
+
+console.log('🚀 Pregões iniciada');
+
+document.addEventListener('DOMContentLoaded', () => {
+    inicializarApp();
+});
+
+function inicializarApp() {
+    loadDadosExemplo();
+    atualizarMesesDisponiveis();
+    renderMesesFilter();
+    filterPregoes();
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg-primary: #FFFFFF;
-        --bg-secondary: #F5F5F5;
-        --bg-card: #FFFFFF;
-        --text-primary: #1A1A1A;
-        --text-secondary: #6B7280;
-        --border-color: #E5E7EB;
-        --input-bg: #F9FAFB;
-        --table-stripe: #FAFAFA;
-        --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        --th-bg: #6B7280;
-        --th-color: #FFFFFF;
-        --th-border: #9CA3AF;
-        --shadow: rgba(0, 0, 0, 0.08);
+// ============================================
+// DADOS DE EXEMPLO
+// ============================================
+function loadDadosExemplo() {
+    pregoes = [
+        {
+            id: 1,
+            // Dados básicos
+            orgao: 'PREFEITURA MUNICIPAL DE VITÓRIA',
+            uasg: '925001',
+            numeroPregao: '001/2024',
+            data: '2024-12-15',
+            sistema: 'BANCO DO BRASIL',
+            vendedor: 'ROBERTO',
+            status: 'aberto',
+            // Aba Geral
+            cidadeUf: 'VITÓRIA-ES',
+            telefone: '(27) 3333-4444',
+            email: 'LICITACAO@VITORIA.ES.GOV.BR',
+            modoDisputa: 'ABERTO',
+            selecionaveis: {
+                certificadoIbama: true,
+                registroPreco: true,
+                instalacao: false,
+                visitaTecnica: false,
+                amostra: false,
+                atestado: true,
+                cadastrarAcima: false,
+                banco: false,
+                garantia: false,
+                icms: true,
+                validade: '60 DIAS',
+                prazoEntrega: '30 DIAS',
+                prazoPagamento: '30 DIAS'
+            },
+            // Itens (vazio por padrão)
+            itens: [],
+            // Proposta
+            proposta: null,
+            // Arquivos (simulação)
+            arquivos: []
+        },
+        {
+            id: 2,
+            orgao: 'GOVERNO DO ESTADO DO ESPÍRITO SANTO',
+            uasg: '925002',
+            numeroPregao: '002/2024',
+            data: '2024-11-10',
+            sistema: 'PORTAL DE COMPRAS',
+            vendedor: 'ISAQUE',
+            status: 'ganho',
+            cidadeUf: 'VITÓRIA-ES',
+            telefone: '',
+            email: '',
+            modoDisputa: 'ABERTO',
+            selecionaveis: {
+                certificadoIbama: false,
+                registroPreco: true,
+                instalacao: false,
+                visitaTecnica: false,
+                amostra: false,
+                atestado: false,
+                cadastrarAcima: false,
+                banco: false,
+                garantia: false,
+                icms: false,
+                validade: '',
+                prazoEntrega: '',
+                prazoPagamento: ''
+            },
+            itens: [],
+            proposta: null,
+            arquivos: []
+        }
+    ];
+}
+
+// ============================================
+// FILTRO POR MÊS
+// ============================================
+function atualizarMesesDisponiveis() {
+    mesesDisponiveis.clear();
+    pregoes.forEach(p => {
+        if (p.data) {
+            const mes = p.data.substring(5, 7);
+            mesesDisponiveis.add(mes);
+        }
+    });
+}
+
+function renderMesesFilter() {
+    const container = document.getElementById('mesesFilter');
+    if (!container) return;
+
+    const mesesArray = Array.from(mesesDisponiveis).sort();
+    const fragment = document.createDocumentFragment();
+    
+    // Botão TODOS
+    const btnTodos = document.createElement('button');
+    btnTodos.className = `mes-button ${mesSelecionado === 'TODOS' ? 'active' : ''}`;
+    btnTodos.textContent = 'TODOS';
+    btnTodos.onclick = () => window.selecionarMes('TODOS');
+    fragment.appendChild(btnTodos);
+    
+    // Botões dos meses
+    mesesArray.forEach(mes => {
+        const button = document.createElement('button');
+        button.className = `mes-button ${mes === mesSelecionado ? 'active' : ''}`;
+        button.textContent = mesesNomes[mes];
+        button.onclick = () => window.selecionarMes(mes);
+        fragment.appendChild(button);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
+}
+
+window.selecionarMes = function(mes) {
+    mesSelecionado = mes;
+    renderMesesFilter();
+    filterPregoes();
+};
+
+// ============================================
+// FILTROS
+// ============================================
+function filterPregoes() {
+    const searchTerm = document.getElementById('search')?.value.toLowerCase() || '';
+    const filterVendedor = document.getElementById('filterVendedor')?.value || '';
+    const filterStatus = document.getElementById('filterStatus')?.value || '';
+    
+    let filtered = [...pregoes];
+
+    // Filtro por mês
+    if (mesSelecionado !== 'TODOS') {
+        filtered = filtered.filter(p => {
+            const mes = p.data.substring(5, 7);
+            return mes === mesSelecionado;
+        });
+    }
+
+    // Filtro por vendedor
+    if (filterVendedor) {
+        filtered = filtered.filter(p => p.vendedor === filterVendedor);
+    }
+
+    // Filtro por status
+    if (filterStatus) {
+        filtered = filtered.filter(p => p.status === filterStatus);
+    }
+
+    // Filtro por pesquisa
+    if (searchTerm) {
+        filtered = filtered.filter(p => 
+            p.orgao?.toLowerCase().includes(searchTerm) ||
+            p.uasg?.toLowerCase().includes(searchTerm) ||
+            p.numeroPregao?.toLowerCase().includes(searchTerm) ||
+            p.vendedor?.toLowerCase().includes(searchTerm)
+        );
+    }
+
+    filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
+    renderPregoes(filtered);
+}
+
+// ============================================
+// MODAL DE CONFIRMAÇÃO
+// ============================================
+function showConfirm(message, options = {}) {
+    return new Promise((resolve) => {
+        const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
+
+        const modalHTML = `
+            <div class="modal-overlay" id="confirmModal" style="z-index: 10001;">
+                <div class="modal-content" style="max-width: 450px;">
+                    <div class="modal-header">
+                        <h3 class="modal-title">${title}</h3>
+                    </div>
+                    <p style="margin: 1.5rem 0; color: var(--text-primary); font-size: 1rem; line-height: 1.6;">${message}</p>
+                    <div class="modal-actions">
+                        <button class="secondary" id="modalCancelBtn">${cancelText}</button>
+                        <button class="${type === 'warning' ? 'danger' : 'success'}" id="modalConfirmBtn">${confirmText}</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = document.getElementById('confirmModal');
+        const confirmBtn = document.getElementById('modalConfirmBtn');
+        const cancelBtn = document.getElementById('modalCancelBtn');
+
+        const closeModal = (result) => {
+            modal.style.animation = 'fadeOut 0.2s ease forwards';
+            setTimeout(() => { 
+                modal.remove(); 
+                resolve(result); 
+            }, 200);
+        };
+
+        confirmBtn.addEventListener('click', () => closeModal(true));
+        cancelBtn.addEventListener('click', () => closeModal(false));
+    });
+}
+
+// ============================================
+// FORMULÁRIO INICIAL (REGISTRO BÁSICO)
+// ============================================
+window.toggleForm = function() {
+    showFormModal(null);
+};
+
+function showFormModal(editingId = null) {
+    const isEditing = editingId !== null;
+    let pregao = null;
+    
+    if (isEditing) {
+        pregao = pregoes.find(p => p.id == editingId);
+        if (!pregao) {
+            showMessage('Pregão não encontrado!', 'error');
+            return;
+        }
+    }
+
+    const modalHTML = `
+        <div class="modal-overlay" id="formModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title">${isEditing ? 'Editar Pregão' : 'Novo Pregão'}</h3>
+                </div>
+                
+                <form id="pregaoForm" onsubmit="handleSubmit(event)">
+                    <input type="hidden" id="editId" value="${editingId || ''}">
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="orgao">Órgão</label>
+                            <input type="text" id="orgao" value="${pregao?.orgao || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="uasg">UASG</label>
+                            <input type="text" id="uasg" value="${pregao?.uasg || ''}">
+                        </div>
+                        <div class="form-group">
+                            <label for="numeroPregao">Nº Pregão *</label>
+                            <input type="text" id="numeroPregao" value="${pregao?.numeroPregao || ''}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="data">Data *</label>
+                            <input type="date" id="data" value="${pregao?.data || new Date().toISOString().split('T')[0]}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sistema">Sistema</label>
+                            <select id="sistema">
+                                <option value="">Selecione...</option>
+                                <option value="BANCO DO BRASIL" ${pregao?.sistema === 'BANCO DO BRASIL' ? 'selected' : ''}>BANCO DO BRASIL</option>
+                                <option value="PORTAL DE COMPRAS" ${pregao?.sistema === 'PORTAL DE COMPRAS' ? 'selected' : ''}>PORTAL DE COMPRAS</option>
+                                <option value="COMPRAS GOV" ${pregao?.sistema === 'COMPRAS GOV' ? 'selected' : ''}>COMPRAS GOV</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="vendedor">Vendedor</label>
+                            <select id="vendedor">
+                                <option value="">Selecione...</option>
+                                <option value="ROBERTO" ${pregao?.vendedor === 'ROBERTO' ? 'selected' : ''}>ROBERTO</option>
+                                <option value="ISAQUE" ${pregao?.vendedor === 'ISAQUE' ? 'selected' : ''}>ISAQUE</option>
+                                <option value="MIGUEL" ${pregao?.vendedor === 'MIGUEL' ? 'selected' : ''}>MIGUEL</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        <button type="submit" class="save">${isEditing ? 'Atualizar' : 'Salvar'}</button>
+                        <button type="button" class="secondary" onclick="closeFormModal()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    const camposMaiusculas = ['orgao', 'uasg', 'numeroPregao'];
+    camposMaiusculas.forEach(campoId => {
+        const campo = document.getElementById(campoId);
+        if (campo) {
+            campo.addEventListener('input', (e) => {
+                const start = e.target.selectionStart;
+                e.target.value = e.target.value.toUpperCase();
+                e.target.setSelectionRange(start, start);
+            });
+        }
+    });
+    
+    setTimeout(() => document.getElementById('numeroPregao')?.focus(), 100);
+}
+
+function closeFormModal() {
+    const modal = document.getElementById('formModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease forwards';
+        setTimeout(() => modal.remove(), 200);
     }
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    line-height: 1.6;
-    overflow-y: scroll;
-}
-
-/* SPLASH SCREEN */
-.splash-screen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: var(--bg-primary);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 99999;
-    animation: fadeOut 0.5s ease 2.5s forwards;
-}
-
-.splash-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    opacity: 0;
-    animation: smoothFadeIn 1.5s ease-out 0.3s forwards;
-}
-
-@keyframes smoothFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeOut {
-    to { opacity: 0; visibility: hidden; }
-}
-
-.app-content {
-    opacity: 0;
-    animation: contentFadeIn 0.5s ease 2.8s forwards;
-}
-
-@keyframes contentFadeIn {
-    to { opacity: 1; }
-}
-
-.container {
-    max-width: 1800px;
-    margin: 2rem auto;
-    padding: 0 2rem 5rem 2rem;
-}
-
-.card {
-    background: var(--bg-card);
-    padding: 1.5rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--border-color);
-    box-shadow: var(--card-shadow);
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-h1 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: -0.5px;
-}
-
-/* STATUS DE CONEXÃO */
-.connection-status {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    padding: 0.5rem 1rem;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-}
-
-.status-dot {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-}
-
-.connection-status.online .status-dot {
-    background-color: #00cc77;
-    animation: pulse-online 2s infinite;
-}
-
-.connection-status.offline .status-dot {
-    background-color: #e70000;
-    animation: pulse-offline 2s infinite;
-}
-
-@keyframes pulse-online {
-    0% { box-shadow: 0 0 0 0 rgba(0, 204, 119, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(0, 204, 119, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 204, 119, 0); }
-}
-
-@keyframes pulse-offline {
-    0% { box-shadow: 0 0 0 0 rgba(231, 0, 0, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(231, 0, 0, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(231, 0, 0, 0); }
-}
-
-/* BOTÕES DE FILTRO (estilo Tabela de Preços) */
-.brand-button, .vendedor-button, .mes-button {
-    background: var(--input-bg);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
-    padding: 10px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: all 0.2s ease;
-    text-transform: uppercase;
-}
-
-.brand-button:hover, .vendedor-button:hover, .mes-button:hover {
-    background: rgba(204, 112, 0, 0.1);
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.brand-button.active, .vendedor-button.active, .mes-button.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
-    font-weight: 600;
-}
-
-/* FORMULÁRIOS */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.2rem;
-    margin-bottom: 1.5rem;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 500;
-    color: var(--text-primary);
-    font-size: 0.9rem;
-}
-
-input, select, textarea {
-    width: 100%;
-    padding: 12px 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    background: var(--input-bg);
-    color: var(--text-primary);
-    font-size: 0.95rem;
-    font-family: inherit;
-    transition: all 0.2s ease;
-}
-
-textarea {
-    resize: vertical;
-    min-height: 100px;
-}
-
-input:focus, select:focus, textarea:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-/* BOTÕES */
-button {
-    background: var(--primary);
-    color: white;
-    border: none;
-    padding: 12px 24px;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin-right: 12px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: opacity 0.3s;
-}
-
-button:hover:not(:disabled) { opacity: 0.9; }
-button:disabled { background: #4B5563; cursor: not-allowed; opacity: 0.5; }
-
-button.register { background: var(--btn-register); }
-button.danger, button.delete, .action-btn.delete { background: var(--btn-delete); }
-button.edit, .action-btn.edit { background: var(--btn-edit); }
-button.view, .action-btn.view { background: var(--btn-view); }
-button.success, button.save, button[type="submit"] { background: var(--btn-save); }
-button.secondary { background: #4B5563; }
-button.small { padding: 8px 12px; font-size: 0.85rem; }
-
-.action-btn {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-    margin: 0 4px;
-    min-width: 70px;
-}
-
-.actions-cell {
-    white-space: nowrap;
-    min-width: 340px;
-}
-
-/* FILTROS */
-.filter-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-}
-
-/* TABELAS */
-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 1rem;
-}
-
-thead { background: var(--th-bg); }
-
-th {
-    padding: 16px 20px;
-    text-align: left;
-    font-weight: 700;
-    color: var(--th-color);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border-bottom: 1px solid var(--th-border);
-}
-
-td {
-    padding: 14px 20px;
-    border-bottom: 1px solid var(--border-color);
-    font-size: 0.9rem;
-    color: var(--text-primary);
-}
-
-tbody tr { background: var(--bg-card); }
-tbody tr:nth-child(even) { background: var(--table-stripe); }
-tbody tr:hover { background: var(--table-hover); }
-
-/* Efeito verde para pregões ganhos */
-tbody tr.ganho {
-    background: rgba(34, 197, 94, 0.1) !important;
-    border-left: 3px solid var(--success-color);
-}
-
-tbody tr.ganho:hover {
-    background: rgba(34, 197, 94, 0.15) !important;
-}
-
-/* CHECKBOX CUSTOMIZADO */
-.checkbox-wrapper {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.styled-checkbox {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    width: 40px;
-    height: 40px;
-}
-
-.checkbox-label-styled {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border: 2px solid var(--border-color);
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    background: var(--input-bg);
-}
-
-.checkbox-label-styled:hover {
-    border-color: var(--primary);
-    background: rgba(204, 112, 0, 0.1);
-}
-
-.styled-checkbox:checked + .checkbox-label-styled {
-    background: #22C55E;
-    border-color: #22C55E;
-}
-
-.styled-checkbox:checked + .checkbox-label-styled::after {
-    content: '✓';
-    color: white;
-    font-size: 1rem;
-    font-weight: 700;
-}
-
-/* BADGE */
-.badge {
-    padding: 4px 12px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-}
-
-.badge.aberto {
-    background: rgba(245, 158, 11, 0.2);
-    color: var(--warning-color);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.badge.ganho {
-    background: rgba(34, 197, 94, 0.2);
-    color: var(--success-color);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.badge.perdido {
-    background: rgba(220, 38, 38, 0.2);
-    color: var(--danger-color);
-    border: 1px solid rgba(220, 38, 38, 0.3);
-}
-
-/* FLOATING MESSAGES */
-.floating-message {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    padding: 14px 20px;
-    border-radius: 10px;
-    font-weight: 500;
-    font-size: 0.95rem;
-    z-index: 9999999;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    border: 1px solid;
-    animation: slideIn 0.3s ease;
-}
-
-.floating-message.success {
-    background: #D1FAE5;
-    color: #065F46;
-    border-color: #A7F3D0;
-}
-
-.floating-message.error {
-    background: #FEE2E2;
-    color: #991B1B;
-    border-color: #FECACA;
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateX(400px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slideOut {
-    to { opacity: 0; transform: translateX(400px); }
-}
-
-/* MODAL */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-    opacity: 0;
-    animation: fadeIn 0.2s ease forwards;
-}
-
-@keyframes fadeIn { to { opacity: 1; } }
-
-.modal-content {
-    background: var(--bg-card);
-    border-radius: 16px;
-    padding: 2rem;
-    max-width: 1200px;
-    width: 95%;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px var(--shadow);
-    border: 1px solid var(--border-color);
-    transform: scale(0.9);
-    animation: scaleIn 0.2s ease forwards;
-}
-
-@keyframes scaleIn { to { transform: scale(1); } }
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.modal-title {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-/* SISTEMA DE ABAS */
-.tabs-container {
-    margin-bottom: 1.5rem;
-}
-
-.tabs-nav {
-    display: flex;
-    gap: 0.5rem;
-    border-bottom: 2px solid var(--border-color);
-    margin-bottom: 1.5rem;
-    overflow-x: auto;
-    flex-wrap: wrap;
-}
-
-.tab-btn {
-    background: transparent;
-    border: none;
-    padding: 12px 20px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    border-bottom: 3px solid transparent;
-    transition: all 0.3s ease;
-    white-space: nowrap;
-    margin: 0;
-    border-radius: 0;
-}
-
-.tab-btn:hover {
-    color: var(--text-primary);
-    background: rgba(204, 112, 0, 0.05);
-}
-
-.tab-btn.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-    background: transparent;
-}
-
-.tab-content {
-    display: none;
-    animation: fadeInTab 0.3s ease;
-}
-
-.tab-content.active {
-    display: block;
-}
-
-@keyframes fadeInTab {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-.modal-actions {
-    display: flex;
-    gap: 0.75rem;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 2px solid var(--border-color);
-}
-
-.modal-actions button { margin: 0; min-width: 120px; }
-
-.info-section {
-    margin-bottom: 1.5rem;
-}
-
-.info-section h4 {
-    color: var(--primary);
-    margin-bottom: 0.75rem;
-    font-size: 1.1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.info-section p {
-    margin-bottom: 0.5rem;
-    line-height: 1.6;
-}
-
-/* BOTÃO FLUTUANTE */
-.floating-add-btn {
-    position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    background: var(--btn-register);
-    color: white;
-    border: none;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 119, 199, 0.4);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    z-index: 1000;
-    padding: 0;
-    margin: 0;
-}
-
-.floating-add-btn:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px rgba(0, 119, 199, 0.6);
-}
-
-.floating-add-btn:active {
-    transform: scale(0.95);
-}
-
-.floating-add-btn svg {
-    width: 28px;
-    height: 28px;
-}
-
-/* TABELA DE ITENS (estilo Excel) */
-.items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1rem 0;
-    font-size: 0.85rem;
-}
-
-.items-table th,
-.items-table td {
-    border: 1px solid var(--border-color);
-    padding: 8px;
-    vertical-align: middle;
-}
-
-.items-table th {
-    background: var(--th-bg);
-    color: var(--th-color);
-    font-weight: 600;
-    text-align: center;
-    font-size: 0.8rem;
-}
-
-.items-table input[type="text"],
-.items-table input[type="number"],
-.items-table textarea {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--input-bg);
-    color: var(--text-primary);
-    font-size: 0.85rem;
-}
-
-.items-table textarea {
-    resize: vertical;
-    min-height: 40px;
-    font-family: inherit;
-}
-
-.items-table input[readonly] {
-    background: var(--bg-card);
-    cursor: not-allowed;
-}
-
-.items-table tr.excede-estimado {
-    background: rgba(220, 38, 38, 0.1) !important;
-}
-
-.items-table tr.excede-estimado td {
-    background: rgba(220, 38, 38, 0.05);
-}
-
-.close-modal {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0;
-    margin: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 4px;
-    transition: all 0.2s;
-}
-
-.close-modal:hover {
-    background: rgba(220, 38, 38, 0.1);
-    color: var(--danger-color);
-}
-
-.hidden { display: none !important; }
-
-/* RESPONSIVO */
-@media (max-width: 768px) {
-    .container { padding: 0 1rem 5rem 1rem; margin: 1rem auto; }
-    .header { flex-direction: column; align-items: flex-start; }
-    h1 { font-size: 1.5rem; }
-    .splash-title { font-size: 1.3rem; }
-    table { font-size: 0.85rem; }
-    th, td { padding: 10px 8px; }
-    button { padding: 10px 16px; font-size: 0.9rem; }
-    .form-grid { grid-template-columns: 1fr; }
-    .modal-content { padding: 1.5rem; width: 95%; }
-    .modal-actions { flex-direction: column-reverse; }
-    .modal-actions button { width: 100%; }
-    .filter-section { grid-template-columns: 1fr; }
-    .tabs-nav { flex-wrap: nowrap; }
-    .tab-btn { font-size: 0.8rem; padding: 10px 15px; }
-    .actions-cell { min-width: auto; }
-    .floating-add-btn {
-        width: 56px;
-        height: 56px;
-        bottom: 1.5rem;
-        right: 1.5rem;
+// ============================================
+// SUBMIT
+// ============================================
+async function handleSubmit(event) {
+    if (event) event.preventDefault();
+
+    const formData = {
+        orgao: document.getElementById('orgao').value.trim(),
+        uasg: document.getElementById('uasg').value.trim(),
+        numeroPregao: document.getElementById('numeroPregao').value.trim(),
+        data: document.getElementById('data').value,
+        sistema: document.getElementById('sistema').value.trim(),
+        vendedor: document.getElementById('vendedor').value.trim(),
+        status: 'aberto',
+        cidadeUf: '',
+        telefone: '',
+        email: '',
+        modoDisputa: 'ABERTO',
+        selecionaveis: {
+            certificadoIbama: false,
+            registroPreco: false,
+            instalacao: false,
+            visitaTecnica: false,
+            amostra: false,
+            atestado: false,
+            cadastrarAcima: false,
+            banco: false,
+            garantia: false,
+            icms: false,
+            validade: '',
+            prazoEntrega: '',
+            prazoPagamento: ''
+        },
+        itens: [],
+        proposta: null,
+        arquivos: []
+    };
+
+    const editId = document.getElementById('editId').value;
+
+    if (editId) {
+        const index = pregoes.findIndex(p => p.id == editId);
+        if (index !== -1) {
+            const pregaoExistente = pregoes[index];
+            formData.id = pregaoExistente.id;
+            formData.status = pregaoExistente.status;
+            formData.cidadeUf = pregaoExistente.cidadeUf;
+            formData.telefone = pregaoExistente.telefone;
+            formData.email = pregaoExistente.email;
+            formData.modoDisputa = pregaoExistente.modoDisputa;
+            formData.selecionaveis = pregaoExistente.selecionaveis;
+            formData.itens = pregaoExistente.itens;
+            formData.proposta = pregaoExistente.proposta;
+            formData.arquivos = pregaoExistente.arquivos;
+            pregoes[index] = formData;
+        }
+        showMessage('Pregão atualizado!', 'success');
+    } else {
+        formData.id = Date.now();
+        pregoes.push(formData);
+        showMessage('Pregão criado!', 'success');
     }
-    .floating-add-btn svg {
-        width: 24px;
-        height: 24px;
+
+    atualizarMesesDisponiveis();
+    renderMesesFilter();
+    filterPregoes();
+    closeFormModal();
+}
+
+// ============================================
+// TOGGLE STATUS
+// ============================================
+window.toggleStatus = function(id) {
+    const pregao = pregoes.find(p => p.id == id);
+    if (!pregao) return;
+
+    const novoStatus = pregao.status === 'ganho' ? 'aberto' : 'ganho';
+    pregao.status = novoStatus;
+    
+    filterPregoes();
+    showMessage(`Pregão marcado como ${novoStatus === 'ganho' ? 'GANHO' : 'ABERTO'}!`, 'success');
+};
+
+// ============================================
+// EDIÇÃO
+// ============================================
+window.editPregao = function(id) {
+    const pregao = pregoes.find(p => p.id == id);
+    if (!pregao) {
+        showMessage('Pregão não encontrado!', 'error');
+        return;
     }
+    showFormModal(id);
+};
+
+// ============================================
+// EXCLUSÃO
+// ============================================
+window.deletePregao = async function(id) {
+    const confirmed = await showConfirm(
+        'Tem certeza que deseja excluir este pregão?',
+        {
+            title: 'Excluir Pregão',
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        }
+    );
+
+    if (!confirmed) return;
+
+    pregoes = pregoes.filter(p => p.id != id);
+    atualizarMesesDisponiveis();
+    renderMesesFilter();
+    filterPregoes();
+    showMessage('Pregão excluído!', 'success');
+};
+// ============================================
+// VISUALIZAÇÃO COMPLETA (BOTÃO VER)
+// ============================================
+window.viewPregao = function(id) {
+    const pregao = pregoes.find(p => p.id == id);
+    
+    if (!pregao) {
+        showMessage('Pregão não encontrado!', 'error');
+        return;
+    }
+
+    openViewModal(pregao);
+};
+
+function openViewModal(pregao) {
+    const modalHTML = `
+        <div class="modal-overlay" id="viewModal">
+            <div class="modal-content" style="max-width: 1400px;">
+                <div class="modal-header">
+                    <h3 class="modal-title">Pregão Nº ${pregao.numeroPregao}</h3>
+                    <button class="close-modal" onclick="closeViewModal()">✕</button>
+                </div>
+                
+                <div class="tabs-container">
+                    <div class="tabs-nav">
+                        <button class="tab-btn active" onclick="switchViewTab(0)">Geral</button>
+                        <button class="tab-btn" onclick="switchViewTab(1)">Itens</button>
+                        <button class="tab-btn" onclick="switchViewTab(2)">Proposta</button>
+                        <button class="tab-btn" onclick="switchViewTab(3)">Comprovante</button>
+                    </div>
+
+                    <div class="tab-content active" id="view-tab-geral"></div>
+                    <div class="tab-content" id="view-tab-itens"></div>
+                    <div class="tab-content" id="view-tab-proposta"></div>
+                    <div class="tab-content" id="view-tab-comprovante"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="secondary" onclick="closeViewModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    renderTabGeral(pregao);
+    renderTabItens(pregao);
+    renderTabProposta(pregao);
+    renderTabComprovante(pregao);
+}
+
+function renderTabGeral(pregao) {
+    const container = document.getElementById('view-tab-geral');
+    if (!container) return;
+
+    const selecionaveis = pregao.selecionaveis || {};
+    
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <form id="geralForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Vendedor</label>
+                        <input type="text" id="geral_vendedor" value="${pregao.vendedor || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>UASG</label>
+                        <input type="text" id="geral_uasg" value="${pregao.uasg || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Órgão</label>
+                        <input type="text" id="geral_orgao" value="${pregao.orgao || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Cidade-UF</label>
+                        <input type="text" id="geral_cidadeUf" value="${pregao.cidadeUf || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" id="geral_telefone" value="${pregao.telefone || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="geral_email" value="${pregao.email || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="text" id="geral_data" value="${formatDate(pregao.data)}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Modo de Disputa</label>
+                        <input type="text" id="geral_modoDisputa" value="${pregao.modoDisputa || ''}">
+                    </div>
+                </div>
+                
+                <div style="margin: 2rem 0;">
+                    <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Selecionáveis:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_certificadoIbama" ${selecionaveis.certificadoIbama ? 'checked' : ''}>
+                            <span>CERTIFICADO IBAMA/CTF</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_registroPreco" ${selecionaveis.registroPreco ? 'checked' : ''}>
+                            <span>REGISTRO DE PREÇO</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_instalacao" ${selecionaveis.instalacao ? 'checked' : ''}>
+                            <span>INSTALAÇÃO OU INSPEÇÃO</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_visitaTecnica" ${selecionaveis.visitaTecnica ? 'checked' : ''}>
+                            <span>VISITA TÉCNICA</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_amostra" ${selecionaveis.amostra ? 'checked' : ''}>
+                            <span>AMOSTRA</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_atestado" ${selecionaveis.atestado ? 'checked' : ''}>
+                            <span>ATESTADO DE CAPACIDADE TÉCNICA</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_cadastrarAcima" ${selecionaveis.cadastrarAcima ? 'checked' : ''}>
+                            <span>CADASTRAR ACIMA DO ESTIMADO</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_banco" ${selecionaveis.banco ? 'checked' : ''}>
+                            <span>BANCO</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_garantia" ${selecionaveis.garantia ? 'checked' : ''}>
+                            <span>GARANTIA DE PROPOSTA</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="sel_icms" ${selecionaveis.icms ? 'checked' : ''}>
+                            <span>INFORMAÇÃO ICMS: DIFAL - EQUALIZAÇÃO</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Validade da Proposta</label>
+                        <input type="text" id="sel_validade" value="${selecionaveis.validade || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo de Entrega</label>
+                        <input type="text" id="sel_prazoEntrega" value="${selecionaveis.prazoEntrega || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo de Pagamento</label>
+                        <input type="text" id="sel_prazoPagamento" value="${selecionaveis.prazoPagamento || ''}">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+                    <button type="button" class="save" onclick="salvarAbaGeral(${pregao.id})">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    `;
+}
+
+window.salvarAbaGeral = function(id) {
+    const pregao = pregoes.find(p => p.id == id);
+    if (!pregao) return;
+
+    pregao.cidadeUf = document.getElementById('geral_cidadeUf').value.trim();
+    pregao.telefone = document.getElementById('geral_telefone').value.trim();
+    pregao.email = document.getElementById('geral_email').value.trim();
+    pregao.modoDisputa = document.getElementById('geral_modoDisputa').value.trim();
+    
+    pregao.selecionaveis = {
+        certificadoIbama: document.getElementById('sel_certificadoIbama').checked,
+        registroPreco: document.getElementById('sel_registroPreco').checked,
+        instalacao: document.getElementById('sel_instalacao').checked,
+        visitaTecnica: document.getElementById('sel_visitaTecnica').checked,
+        amostra: document.getElementById('sel_amostra').checked,
+        atestado: document.getElementById('sel_atestado').checked,
+        cadastrarAcima: document.getElementById('sel_cadastrarAcima').checked,
+        banco: document.getElementById('sel_banco').checked,
+        garantia: document.getElementById('sel_garantia').checked,
+        icms: document.getElementById('sel_icms').checked,
+        validade: document.getElementById('sel_validade').value.trim(),
+        prazoEntrega: document.getElementById('sel_prazoEntrega').value.trim(),
+        prazoPagamento: document.getElementById('sel_prazoPagamento').value.trim()
+    };
+
+    showMessage('Dados da aba Geral salvos!', 'success');
+};
+
+function renderTabItens(pregao) {
+    const container = document.getElementById('view-tab-itens');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                <button type="button" class="success small" onclick="adicionarItem(${pregao.id})">+ Adicionar Item</button>
+                <button type="button" class="secondary small" onclick="adicionarIntervalo(${pregao.id})">Adicionar Intervalo</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table class="items-table" id="items-table-${pregao.id}">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">✓</th>
+                            <th style="width: 60px;">ITEM</th>
+                            <th style="min-width: 250px;">DESCRIÇÃO</th>
+                            <th style="width: 80px;">QTD</th>
+                            <th style="width: 80px;">UND</th>
+                            <th style="width: 100px;">MARCA</th>
+                            <th style="width: 100px;">MODELO</th>
+                            <th style="width: 120px; background: #fff3cd;">EST. UNT</th>
+                            <th style="width: 120px; background: #fff3cd;">EST. TOTAL</th>
+                            <th style="width: 120px;">CUSTO UNT</th>
+                            <th style="width: 120px;">CUSTO TOTAL</th>
+                            <th style="width: 120px; background: #ffe8cc;">VENDA UNT</th>
+                            <th style="width: 120px;">VENDA TOTAL</th>
+                            <th style="width: 140px; text-align: center;">AÇÕES</th>
+                        </tr>
+                    </thead>
+                    <tbody id="items-body-${pregao.id}"></tbody>
+                </table>
+            </div>
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-weight: 600;">
+                    <div>
+                        <span>TOTAL ESTIMADO:</span>
+                        <span id="total-estimado-${pregao.id}" style="margin-left: 0.5rem; color: var(--warning-color);">R$ 0,00</span>
+                    </div>
+                    <div>
+                        <span>TOTAL CUSTO:</span>
+                        <span id="total-custo-${pregao.id}" style="margin-left: 0.5rem;">R$ 0,00</span>
+                    </div>
+                    <div>
+                        <span>TOTAL VENDA:</span>
+                        <span id="total-venda-${pregao.id}" style="margin-left: 0.5rem; color: var(--success-color);">R$ 0,00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    renderizarItens(pregao.id);
+}
+
+function renderizarItens(pregaoId) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    const tbody = document.getElementById(`items-body-${pregaoId}`);
+    if (!tbody) return;
+
+    tbody.innerHTML = pregao.itens.map((item, index) => {
+        const estimadoTotal = (item.estimadoUnt || 0) * (item.quantidade || 0);
+        const custoTotal = (item.custoUnt || 0) * (item.quantidade || 0);
+        const vendaTotal = (item.vendaUnt || 0) * (item.quantidade || 0);
+        const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
+        
+        return `
+            <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}">
+                <td style="text-align: center;">
+                    <input type="checkbox" ${item.ganho ? 'checked' : ''} onchange="toggleItemGanho(${pregaoId}, ${index})">
+                </td>
+                <td style="text-align: center;">${item.numero}</td>
+                <td><textarea rows="2" onchange="atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)">${item.descricao || ''}</textarea></td>
+                <td><input type="number" step="0.01" value="${item.quantidade || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})"></td>
+                <td><input type="text" value="${item.unidade || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)"></td>
+                <td><input type="text" value="${item.marca || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)"></td>
+                <td><input type="text" value="${item.modelo || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)"></td>
+                <td style="background: #fff3cd;"><input type="number" step="0.01" value="${item.estimadoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
+                <td style="background: #fff3cd;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly></td>
+                <td><input type="number" step="0.01" value="${item.custoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
+                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly></td>
+                <td style="background: #ffe8cc;"><input type="number" step="0.01" value="${item.vendaUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
+                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly></td>
+                <td style="text-align: center;">
+                    <button class="action-btn" style="background: #f59e0b;" onclick="marcarAtencao(${pregaoId}, ${index})" title="Atenção">⚠</button>
+                    <button class="action-btn delete" onclick="excluirItem(${pregaoId}, ${index})" title="Excluir">🗑</button>
+                    <button class="action-btn" style="background: var(--success-color);" onclick="marcarFeito(${pregaoId}, ${index})" title="Feito">✓</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    recalcularTotais(pregaoId);
+}
+
+window.adicionarItem = function(pregaoId) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    const novoNumero = pregao.itens.length > 0 ? Math.max(...pregao.itens.map(i => i.numero)) + 1 : 1;
+    
+    pregao.itens.push({
+        numero: novoNumero,
+        descricao: '',
+        quantidade: 1,
+        unidade: 'UN',
+        marca: '',
+        modelo: '',
+        estimadoUnt: 0,
+        custoUnt: 0,
+        vendaUnt: 0,
+        ganho: false,
+        atencao: false,
+        feito: false
+    });
+
+    renderizarItens(pregaoId);
+    showMessage('Item adicionado!', 'success');
+};
+
+window.adicionarIntervalo = function(pregaoId) {
+    const intervalo = prompt('Digite o intervalo (ex: 1,2,5-10,15):');
+    if (!intervalo) return;
+
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    const numeros = [];
+    intervalo.split(',').forEach(parte => {
+        parte = parte.trim();
+        if (parte.includes('-')) {
+            const [inicio, fim] = parte.split('-').map(n => parseInt(n.trim()));
+            for (let i = inicio; i <= fim; i++) {
+                numeros.push(i);
+            }
+        } else {
+            numeros.push(parseInt(parte));
+        }
+    });
+
+    numeros.forEach(num => {
+        if (!pregao.itens.find(i => i.numero === num)) {
+            pregao.itens.push({
+                numero: num,
+                descricao: '',
+                quantidade: 1,
+                unidade: 'UN',
+                marca: '',
+                modelo: '',
+                estimadoUnt: 0,
+                custoUnt: 0,
+                vendaUnt: 0,
+                ganho: false,
+                atencao: false,
+                feito: false
+            });
+        }
+    });
+
+    pregao.itens.sort((a, b) => a.numero - b.numero);
+    renderizarItens(pregaoId);
+    showMessage(`${numeros.length} itens adicionados!`, 'success');
+};
+
+window.atualizarItem = function(pregaoId, index, campo, valor) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    if (campo === 'quantidade' || campo === 'estimadoUnt' || campo === 'custoUnt' || campo === 'vendaUnt') {
+        pregao.itens[index][campo] = parseFloat(valor) || 0;
+    } else {
+        pregao.itens[index][campo] = valor;
+    }
+};
+
+window.recalcularItem = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    const item = pregao.itens[index];
+    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
+    
+    if (row) {
+        const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
+        if (excedeEstimado) {
+            row.classList.add('excede-estimado');
+        } else {
+            row.classList.remove('excede-estimado');
+        }
+    }
+
+    recalcularTotais(pregaoId);
+};
+
+function recalcularTotais(pregaoId) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    let totalEstimado = 0;
+    let totalCusto = 0;
+    let totalVenda = 0;
+
+    pregao.itens.forEach(item => {
+        totalEstimado += (item.estimadoUnt || 0) * (item.quantidade || 0);
+        totalCusto += (item.custoUnt || 0) * (item.quantidade || 0);
+        totalVenda += (item.vendaUnt || 0) * (item.quantidade || 0);
+    });
+
+    const elemEstimado = document.getElementById(`total-estimado-${pregaoId}`);
+    const elemCusto = document.getElementById(`total-custo-${pregaoId}`);
+    const elemVenda = document.getElementById(`total-venda-${pregaoId}`);
+
+    if (elemEstimado) elemEstimado.textContent = `R$ ${totalEstimado.toFixed(2)}`;
+    if (elemCusto) elemCusto.textContent = `R$ ${totalCusto.toFixed(2)}`;
+    if (elemVenda) elemVenda.textContent = `R$ ${totalVenda.toFixed(2)}`;
+}
+
+window.toggleItemGanho = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].ganho = !pregao.itens[index].ganho;
+};
+
+window.marcarAtencao = function(pregaoId, index) {
+    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
+    if (row) {
+        row.style.background = row.style.background === 'rgba(220, 38, 38, 0.1)' ? '' : 'rgba(220, 38, 38, 0.1)';
+    }
+};
+
+window.excluirItem = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    if (confirm('Excluir este item?')) {
+        pregao.itens.splice(index, 1);
+        renderizarItens(pregaoId);
+        showMessage('Item excluído!', 'error');
+    }
+};
+
+window.marcarFeito = function(pregaoId, index) {
+    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
+    if (row) {
+        row.style.background = row.style.background === 'rgba(34, 197, 94, 0.1)' ? '' : 'rgba(34, 197, 94, 0.1)';
+    }
+};
+
+function renderTabProposta(pregao) {
+    const container = document.getElementById('view-tab-proposta');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Funcionalidade de proposta em desenvolvimento...</p>
+            <button class="success">Gerar Proposta PDF</button>
+        </div>
+    `;
+}
+
+function renderTabComprovante(pregao) {
+    const container = document.getElementById('view-tab-comprovante');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <p style="color: var(--text-secondary);">Funcionalidade de comprovante de exequibilidade em desenvolvimento...</p>
+        </div>
+    `;
+}
+
+function closeViewModal() {
+    const modal = document.getElementById('viewModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease forwards';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+window.switchViewTab = function(index) {
+    document.querySelectorAll('#viewModal .tab-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+    });
+    
+    document.querySelectorAll('#viewModal .tab-content').forEach((content, i) => {
+        content.classList.toggle('active', i === index);
+    });
+};
+// ============================================
+// BOTÃO ARQUIVOS (MODAL SIMULANDO GOOGLE DRIVE)
+// ============================================
+window.openArquivos = function(id) {
+    const pregao = pregoes.find(p => p.id == id);
+    if (!pregao) return;
+
+    const modalHTML = `
+        <div class="modal-overlay" id="arquivosModal">
+            <div class="modal-content" style="max-width: 900px;">
+                <div class="modal-header">
+                    <h3 class="modal-title">Arquivos - Pregão Nº ${pregao.numeroPregao}</h3>
+                    <button class="close-modal" onclick="closeArquivosModal()">✕</button>
+                </div>
+                
+                <div style="padding: 1rem 0;">
+                    <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
+                        <button type="button" class="success small" onclick="uploadArquivo(${id})">📁 Upload Arquivo</button>
+                        <button type="button" class="secondary small" onclick="criarPasta(${id})">📂 Criar Pasta</button>
+                    </div>
+                    
+                    <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem;">
+                        <div style="margin-bottom: 1rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
+                            📁 VENDEDOR-DATA-UASG-PREGÃO/${pregao.vendedor}-${pregao.data}-${pregao.uasg}-${pregao.numeroPregao}/
+                        </div>
+                        
+                        <div id="arquivos-list-${id}" style="min-height: 200px;">
+                            <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+                                <p>Nenhum arquivo encontrado</p>
+                                <p style="font-size: 0.85rem; margin-top: 0.5rem;">Clique em "Upload Arquivo" para adicionar</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(204, 112, 0, 0.1); border-radius: 6px; font-size: 0.85rem; color: var(--text-secondary);">
+                        <strong>Arquivos padrão:</strong> PROPOSTA-(UASG)-(Nº PREGÃO).PDF e COMPROVANTE DE EXEQUIBILIDADE-(UASG)-(Nº PREGÃO).PDF
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="secondary" onclick="closeArquivosModal()">Fechar</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    renderArquivos(id);
+};
+
+function renderArquivos(pregaoId) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.arquivos || pregao.arquivos.length === 0) return;
+
+    const container = document.getElementById(`arquivos-list-${pregaoId}`);
+    if (!container) return;
+
+    container.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            ${pregao.arquivos.map((arquivo, index) => `
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.75rem; background: var(--input-bg); border-radius: 6px;">
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <span style="font-size: 1.5rem;">${arquivo.tipo === 'pasta' ? '📁' : '📄'}</span>
+                        <div>
+                            <div style="font-weight: 500;">${arquivo.nome}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary);">${arquivo.data || ''}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button class="action-btn view" onclick="visualizarArquivo(${pregaoId}, ${index})">Ver</button>
+                        <button class="action-btn delete" onclick="excluirArquivo(${pregaoId}, ${index})">Excluir</button>
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+window.uploadArquivo = function(pregaoId) {
+    const nome = prompt('Nome do arquivo (incluir extensão):');
+    if (!nome) return;
+
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    if (!pregao.arquivos) pregao.arquivos = [];
+
+    pregao.arquivos.push({
+        nome: nome,
+        tipo: 'arquivo',
+        data: new Date().toLocaleDateString('pt-BR')
+    });
+
+    renderArquivos(pregaoId);
+    showMessage('Arquivo adicionado!', 'success');
+};
+
+window.criarPasta = function(pregaoId) {
+    const nome = prompt('Nome da pasta:');
+    if (!nome) return;
+
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    if (!pregao.arquivos) pregao.arquivos = [];
+
+    pregao.arquivos.push({
+        nome: nome,
+        tipo: 'pasta',
+        data: new Date().toLocaleDateString('pt-BR')
+    });
+
+    renderArquivos(pregaoId);
+    showMessage('Pasta criada!', 'success');
+};
+
+window.visualizarArquivo = function(pregaoId, index) {
+    showMessage('Visualização de arquivo simulada', 'success');
+};
+
+window.excluirArquivo = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
+    if (confirm('Excluir este arquivo?')) {
+        pregao.arquivos.splice(index, 1);
+        renderArquivos(pregaoId);
+        showMessage('Arquivo excluído!', 'error');
+    }
+};
+
+function closeArquivosModal() {
+    const modal = document.getElementById('arquivosModal');
+    if (modal) {
+        modal.style.animation = 'fadeOut 0.2s ease forwards';
+        setTimeout(() => modal.remove(), 200);
+    }
+}
+
+// ============================================
+// RENDERIZAÇÃO DA TABELA
+// ============================================
+function renderPregoes(pregoesToRender) {
+    const container = document.getElementById('pregoesContainer');
+    
+    if (!container) return;
+    
+    if (!pregoesToRender || pregoesToRender.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhum pregão encontrado</div>';
+        return;
+    }
+
+    const table = `
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="text-align: center; width: 60px;"> </th>
+                        <th>UASG</th>
+                        <th>Nº PREGÃO</th>
+                        <th>Data</th>
+                        <th>Vendedor</th>
+                        <th>Status</th>
+                        <th style="text-align: center; min-width: 340px;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${pregoesToRender.map(p => `
+                        <tr class="${p.status === 'ganho' ? 'ganho' : ''}">
+                            <td style="text-align: center;">
+                                <div class="checkbox-wrapper">
+                                    <input 
+                                        type="checkbox" 
+                                        id="check-${p.id}"
+                                        ${p.status === 'ganho' ? 'checked' : ''}
+                                        onchange="toggleStatus(${p.id})"
+                                        class="styled-checkbox"
+                                    >
+                                    <label for="check-${p.id}" class="checkbox-label-styled"></label>
+                                </div>
+                            </td>
+                            <td><strong>${p.uasg || 'N/A'}</strong></td>
+                            <td><strong>${p.numeroPregao}</strong></td>
+                            <td>${formatDate(p.data)}</td>
+                            <td>${p.vendedor || 'N/A'}</td>
+                            <td>
+                                <span class="badge ${p.status}">
+                                    ${p.status.toUpperCase()}
+                                </span>
+                            </td>
+                            <td class="actions-cell" style="text-align: center;">
+                                <button onclick="viewPregao(${p.id})" class="action-btn view">Ver</button>
+                                <button onclick="editPregao(${p.id})" class="action-btn edit">Editar</button>
+                                <button onclick="openArquivos(${p.id})" class="action-btn success">Arquivos</button>
+                                <button onclick="deletePregao(${p.id})" class="action-btn delete">Excluir</button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+    `;
+    
+    container.innerHTML = table;
+}
+
+// ============================================
+// UTILIDADES
+// ============================================
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString + 'T00:00:00');
+    return date.toLocaleDateString('pt-BR');
+}
+
+function showMessage(message, type) {
+    const oldMessages = document.querySelectorAll('.floating-message');
+    oldMessages.forEach(msg => msg.remove());
+    
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `floating-message ${type}`;
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        messageDiv.style.animation = 'slideOut 0.3s ease forwards';
+        setTimeout(() => messageDiv.remove(), 300);
+    }, 3000);
 }
