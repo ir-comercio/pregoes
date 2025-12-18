@@ -8,13 +8,8 @@ let pregoes = [];
 let isOnline = false;
 let lastDataHash = '';
 let sessionToken = null;
-let currentMonth = new Date().getMonth();
-let currentYear = new Date().getFullYear();
-
-const meses = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-];
+let vendedorSelecionado = 'TODOS';
+let vendedoresDisponiveis = new Set();
 
 console.log('🚀 Pregões iniciada');
 
@@ -23,35 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // verificarAutenticacao();
     inicializarApp();
 });
-
-// ============================================
-// NAVEGAÇÃO POR MESES
-// ============================================
-function updateMonthDisplay() {
-    const display = document.getElementById('currentMonthDisplay');
-    if (display) {
-        display.textContent = `${meses[currentMonth]} ${currentYear}`;
-    }
-    filterPregoes();
-}
-
-window.previousMonth = function() {
-    currentMonth--;
-    if (currentMonth < 0) {
-        currentMonth = 11;
-        currentYear--;
-    }
-    updateMonthDisplay();
-};
-
-window.nextMonth = function() {
-    currentMonth++;
-    if (currentMonth > 11) {
-        currentMonth = 0;
-        currentYear++;
-    }
-    updateMonthDisplay();
-};
 
 // ============================================
 // AUTENTICAÇÃO (para deploy)
@@ -87,10 +53,10 @@ function mostrarTelaAcessoNegado(mensagem = 'NÃO AUTORIZADO') {
 }
 
 function inicializarApp() {
-    updateMonthDisplay();
     // Para teste local, carregar dados de exemplo
     loadDadosExemplo();
-    updateAllFilters();
+    atualizarVendedoresDisponiveis();
+    renderVendedoresFilter();
     filterPregoes();
 }
 
@@ -318,7 +284,8 @@ async function handleSubmit(event) {
     }
 
     lastDataHash = JSON.stringify(pregoes.map(p => p.id));
-    updateAllFilters();
+    atualizarVendedoresDisponiveis();
+    renderVendedoresFilter();
     filterPregoes();
     closeFormModal();
 }
@@ -356,7 +323,8 @@ window.deletePregao = async function(id) {
 
     const idStr = String(id);
     pregoes = pregoes.filter(p => String(p.id) !== idStr);
-    updateAllFilters();
+    atualizarVendedoresDisponiveis();
+    renderVendedoresFilter();
     filterPregoes();
     showMessage('Pregão excluído!', 'success');
 };
@@ -460,54 +428,60 @@ window.openArquivos = function(id) {
 };
 
 // ============================================
-// FILTROS
+// FILTROS POR VENDEDOR (estilo Tabela de Preços)
 // ============================================
-function updateAllFilters() {
-    updateVendedoresFilter();
-}
-
-function updateVendedoresFilter() {
-    const vendedores = new Set();
+function atualizarVendedoresDisponiveis() {
+    vendedoresDisponiveis.clear();
     pregoes.forEach(p => {
-        if (p.vendedor?.trim()) {
-            vendedores.add(p.vendedor.trim());
+        if (p.vendedor && p.vendedor.trim()) {
+            vendedoresDisponiveis.add(p.vendedor.trim());
         }
     });
-
-    const select = document.getElementById('filterVendedor');
-    if (select) {
-        const currentValue = select.value;
-        select.innerHTML = '<option value="">Todos</option>';
-        Array.from(vendedores).sort().forEach(v => {
-            const option = document.createElement('option');
-            option.value = v;
-            option.textContent = v;
-            select.appendChild(option);
-        });
-        select.value = currentValue;
-    }
 }
+
+function renderVendedoresFilter() {
+    const container = document.getElementById('vendedoresFilter');
+    if (!container) return;
+
+    const vendedoresArray = Array.from(vendedoresDisponiveis).sort();
+    
+    const fragment = document.createDocumentFragment();
+    
+    ['TODOS', ...vendedoresArray].forEach(vendedor => {
+        const button = document.createElement('button');
+        button.className = `vendedor-button ${vendedor === vendedorSelecionado ? 'active' : ''}`;
+        button.textContent = vendedor;
+        button.onclick = () => window.selecionarVendedor(vendedor);
+        fragment.appendChild(button);
+    });
+
+    container.innerHTML = '';
+    container.appendChild(fragment);
+}
+
+window.selecionarVendedor = function(vendedor) {
+    vendedorSelecionado = vendedor;
+    renderVendedoresFilter();
+    filterPregoes();
+};
 
 function filterPregoes() {
     const searchTerm = document.getElementById('search')?.value.toLowerCase() || '';
-    const filterVendedor = document.getElementById('filterVendedor')?.value || '';
     const filterStatus = document.getElementById('filterStatus')?.value || '';
     
     let filtered = [...pregoes];
 
-    filtered = filtered.filter(p => {
-        const data = new Date(p.data + 'T00:00:00');
-        return data.getMonth() === currentMonth && data.getFullYear() === currentYear;
-    });
-
-    if (filterVendedor) {
-        filtered = filtered.filter(p => p.vendedor === filterVendedor);
+    // Filtro por vendedor selecionado
+    if (vendedorSelecionado !== 'TODOS') {
+        filtered = filtered.filter(p => p.vendedor === vendedorSelecionado);
     }
 
+    // Filtro por status
     if (filterStatus) {
         filtered = filtered.filter(p => p.status === filterStatus);
     }
 
+    // Filtro por pesquisa
     if (searchTerm) {
         filtered = filtered.filter(p => 
             p.orgao?.toLowerCase().includes(searchTerm) ||
@@ -517,21 +491,10 @@ function filterPregoes() {
         );
     }
 
+    // Ordenar por data (mais recente primeiro)
     filtered.sort((a, b) => new Date(b.data) - new Date(a.data));
-    renderPregoes(filtered);
-    updateDashboard(filtered);
-}
-
-// ============================================
-// DASHBOARD
-// ============================================
-function updateDashboard(filtered) {
-    const totalGanhos = filtered.filter(p => p.status === 'ganho').length;
-    const totalAbertos = filtered.filter(p => p.status === 'aberto').length;
     
-    document.getElementById('totalPregoes').textContent = filtered.length;
-    document.getElementById('totalGanhos').textContent = totalGanhos;
-    document.getElementById('totalAbertos').textContent = totalAbertos;
+    renderPregoes(filtered);
 }
 
 // ============================================
@@ -543,7 +506,7 @@ function renderPregoes(pregoesToRender) {
     if (!container) return;
     
     if (!pregoesToRender || pregoesToRender.length === 0) {
-        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhum pregão encontrado para este período</div>';
+        container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhum pregão encontrado</div>';
         return;
     }
 
