@@ -606,58 +606,41 @@ tbody tr.ganho:hover {
     height: 28px;
 }
 
-/* TABELA DE ITENS (estilo Excel) */
-.items-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 1rem 0;
-    font-size: 0.85rem;
-}
-
-.items-table th,
-.items-table td {
+/* BOTÃO DE VOLTAR */
+.back-button {
+    background: transparent;
     border: 1px solid var(--border-color);
-    padding: 8px;
-    vertical-align: middle;
-}
-
-.items-table th {
-    background: var(--th-bg);
-    color: var(--th-color);
-    font-weight: 600;
-    text-align: center;
-    font-size: 0.8rem;
-}
-
-.items-table input[type="text"],
-.items-table input[type="number"],
-.items-table textarea {
-    width: 100%;
-    padding: 6px;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    background: var(--input-bg);
     color: var(--text-primary);
-    font-size: 0.85rem;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
 }
 
-.items-table textarea {
-    resize: vertical;
-    min-height: 40px;
-    font-family: inherit;
+.back-button:hover {
+    background: rgba(204, 112, 0, 0.1);
+    border-color: var(--primary);
+    color: var(--primary);
 }
 
-.items-table input[readonly] {
-    background: var(--bg-card);
-    cursor: not-allowed;
+/* LINHAS COM ESTADO */
+tbody tr.excede-estimado {
+    background: rgba(220, 38, 38, 0.15) !important;
 }
 
-.items-table tr.excede-estimado {
-    background: rgba(220, 38, 38, 0.1) !important;
+tbody tr.excede-estimado td {
+    background: rgba(220, 38, 38, 0.05) !important;
 }
 
-.items-table tr.excede-estimado td {
-    background: rgba(220, 38, 38, 0.05);
+tbody tr.excede-estimado td[style*="background: #fff3cd"],
+tbody tr.excede-estimado td[style*="background: #ffe8cc"] {
+    background: rgba(220, 38, 38, 0.2) !important;
 }
 
 .close-modal {
