@@ -264,6 +264,8 @@ button.edit, .action-btn.edit { background: var(--btn-edit); }
 button.view, .action-btn.view { background: var(--btn-view); }
 button.success, button.save, button[type="submit"] { background: var(--btn-save); }
 button.secondary { background: #4B5563; }
+button.danger { background: #dc2626; color: white; }
+button.danger:hover { background: #b91c1c; }
 button.small { padding: 8px 12px; font-size: 0.85rem; }
 
 .action-btn {
