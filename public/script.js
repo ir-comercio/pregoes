@@ -31,6 +31,7 @@ function loadDadosExemplo() {
     pregoes = [
         {
             id: 1,
+            // Dados básicos
             orgao: 'PREFEITURA MUNICIPAL DE VITÓRIA',
             uasg: '925001',
             numeroPregao: '001/2024',
@@ -38,6 +39,7 @@ function loadDadosExemplo() {
             sistema: 'BANCO DO BRASIL',
             vendedor: 'ROBERTO',
             status: 'aberto',
+            // Aba Geral
             cidadeUf: 'VITÓRIA-ES',
             telefone: '(27) 3333-4444',
             email: 'LICITACAO@VITORIA.ES.GOV.BR',
@@ -56,6 +58,41 @@ function loadDadosExemplo() {
                 validade: '60 DIAS',
                 prazoEntrega: '30 DIAS',
                 prazoPagamento: '30 DIAS'
+            },
+            // Itens (vazio por padrão)
+            itens: [],
+            // Proposta
+            proposta: null,
+            // Arquivos (simulação)
+            arquivos: []
+        },
+        {
+            id: 2,
+            orgao: 'GOVERNO DO ESTADO DO ESPÍRITO SANTO',
+            uasg: '925002',
+            numeroPregao: '002/2024',
+            data: '2024-11-10',
+            sistema: 'PORTAL DE COMPRAS',
+            vendedor: 'ISAQUE',
+            status: 'ganho',
+            cidadeUf: 'VITÓRIA-ES',
+            telefone: '',
+            email: '',
+            modoDisputa: 'ABERTO',
+            selecionaveis: {
+                certificadoIbama: false,
+                registroPreco: true,
+                instalacao: false,
+                visitaTecnica: false,
+                amostra: false,
+                atestado: false,
+                cadastrarAcima: false,
+                banco: false,
+                garantia: false,
+                icms: false,
+                validade: '',
+                prazoEntrega: '',
+                prazoPagamento: ''
             },
             itens: [],
             proposta: null,
@@ -84,12 +121,14 @@ function renderMesesFilter() {
     const mesesArray = Array.from(mesesDisponiveis).sort();
     const fragment = document.createDocumentFragment();
     
+    // Botão TODOS
     const btnTodos = document.createElement('button');
     btnTodos.className = `mes-button ${mesSelecionado === 'TODOS' ? 'active' : ''}`;
     btnTodos.textContent = 'TODOS';
     btnTodos.onclick = () => window.selecionarMes('TODOS');
     fragment.appendChild(btnTodos);
     
+    // Botões dos meses
     mesesArray.forEach(mes => {
         const button = document.createElement('button');
         button.className = `mes-button ${mes === mesSelecionado ? 'active' : ''}`;
@@ -118,6 +157,7 @@ function filterPregoes() {
     
     let filtered = [...pregoes];
 
+    // Filtro por mês
     if (mesSelecionado !== 'TODOS') {
         filtered = filtered.filter(p => {
             const mes = p.data.substring(5, 7);
@@ -125,14 +165,17 @@ function filterPregoes() {
         });
     }
 
+    // Filtro por vendedor
     if (filterVendedor) {
         filtered = filtered.filter(p => p.vendedor === filterVendedor);
     }
 
+    // Filtro por status
     if (filterStatus) {
         filtered = filtered.filter(p => p.status === filterStatus);
     }
 
+    // Filtro por pesquisa
     if (searchTerm) {
         filtered = filtered.filter(p => 
             p.orgao?.toLowerCase().includes(searchTerm) ||
@@ -152,6 +195,7 @@ function filterPregoes() {
 function showConfirm(message, options = {}) {
     return new Promise((resolve) => {
         const { title = 'Confirmação', confirmText = 'Confirmar', cancelText = 'Cancelar', type = 'warning' } = options;
+
         const modalHTML = `
             <div class="modal-overlay" id="confirmModal" style="z-index: 10001;">
                 <div class="modal-content" style="max-width: 450px;">
@@ -166,21 +210,27 @@ function showConfirm(message, options = {}) {
                 </div>
             </div>
         `;
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         const modal = document.getElementById('confirmModal');
         const confirmBtn = document.getElementById('modalConfirmBtn');
         const cancelBtn = document.getElementById('modalCancelBtn');
+
         const closeModal = (result) => {
             modal.style.animation = 'fadeOut 0.2s ease forwards';
-            setTimeout(() => { modal.remove(); resolve(result); }, 200);
+            setTimeout(() => { 
+                modal.remove(); 
+                resolve(result); 
+            }, 200);
         };
+
         confirmBtn.addEventListener('click', () => closeModal(true));
         cancelBtn.addEventListener('click', () => closeModal(false));
     });
 }
 
 // ============================================
-// FORMULÁRIO INICIAL
+// FORMULÁRIO INICIAL (REGISTRO BÁSICO)
 // ============================================
 window.toggleForm = function() {
     showFormModal(null);
@@ -204,8 +254,10 @@ function showFormModal(editingId = null) {
                 <div class="modal-header">
                     <h3 class="modal-title">${isEditing ? 'Editar Pregão' : 'Novo Pregão'}</h3>
                 </div>
+                
                 <form id="pregaoForm" onsubmit="handleSubmit(event)">
                     <input type="hidden" id="editId" value="${editingId || ''}">
+                    
                     <div class="form-grid">
                         <div class="form-group">
                             <label for="orgao">Órgão</label>
@@ -242,6 +294,7 @@ function showFormModal(editingId = null) {
                             </select>
                         </div>
                     </div>
+
                     <div class="modal-actions">
                         <button type="submit" class="save">${isEditing ? 'Atualizar' : 'Salvar'}</button>
                         <button type="button" class="secondary" onclick="closeFormModal()">Cancelar</button>
@@ -250,7 +303,9 @@ function showFormModal(editingId = null) {
             </div>
         </div>
     `;
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
     const camposMaiusculas = ['orgao', 'uasg', 'numeroPregao'];
     camposMaiusculas.forEach(campoId => {
         const campo = document.getElementById(campoId);
@@ -262,6 +317,7 @@ function showFormModal(editingId = null) {
             });
         }
     });
+    
     setTimeout(() => document.getElementById('numeroPregao')?.focus(), 100);
 }
 
@@ -273,8 +329,12 @@ function closeFormModal() {
     }
 }
 
+// ============================================
+// SUBMIT
+// ============================================
 async function handleSubmit(event) {
     if (event) event.preventDefault();
+
     const formData = {
         orgao: document.getElementById('orgao').value.trim(),
         uasg: document.getElementById('uasg').value.trim(),
@@ -306,7 +366,9 @@ async function handleSubmit(event) {
         proposta: null,
         arquivos: []
     };
+
     const editId = document.getElementById('editId').value;
+
     if (editId) {
         const index = pregoes.findIndex(p => p.id == editId);
         if (index !== -1) {
@@ -329,21 +391,30 @@ async function handleSubmit(event) {
         pregoes.push(formData);
         showMessage('Pregão criado!', 'success');
     }
+
     atualizarMesesDisponiveis();
     renderMesesFilter();
     filterPregoes();
     closeFormModal();
 }
 
+// ============================================
+// TOGGLE STATUS
+// ============================================
 window.toggleStatus = function(id) {
     const pregao = pregoes.find(p => p.id == id);
     if (!pregao) return;
+
     const novoStatus = pregao.status === 'ganho' ? 'aberto' : 'ganho';
     pregao.status = novoStatus;
+    
     filterPregoes();
     showMessage(`Pregão marcado como ${novoStatus === 'ganho' ? 'GANHO' : 'ABERTO'}!`, 'success');
 };
 
+// ============================================
+// EDIÇÃO
+// ============================================
 window.editPregao = function(id) {
     const pregao = pregoes.find(p => p.id == id);
     if (!pregao) {
@@ -353,37 +424,54 @@ window.editPregao = function(id) {
     showFormModal(id);
 };
 
+// ============================================
+// EXCLUSÃO
+// ============================================
 window.deletePregao = async function(id) {
-    const confirmed = await showConfirm('Tem certeza que deseja excluir este pregão?', {
-        title: 'Excluir Pregão',
-        confirmText: 'Excluir',
-        cancelText: 'Cancelar',
-        type: 'warning'
-    });
+    const confirmed = await showConfirm(
+        'Tem certeza que deseja excluir este pregão?',
+        {
+            title: 'Excluir Pregão',
+            confirmText: 'Excluir',
+            cancelText: 'Cancelar',
+            type: 'warning'
+        }
+    );
+
     if (!confirmed) return;
+
     pregoes = pregoes.filter(p => p.id != id);
     atualizarMesesDisponiveis();
     renderMesesFilter();
     filterPregoes();
     showMessage('Pregão excluído!', 'success');
 };
-
 // ============================================
-// VISUALIZAÇÃO COMPLETA (CARREGAMENTO RÁPIDO)
+// VISUALIZAÇÃO COMPLETA (BOTÃO VER)
 // ============================================
 let pregaoAtualVisualizacao = null;
 
 window.viewPregao = function(id) {
     const pregao = pregoes.find(p => p.id == id);
+    
     if (!pregao) {
         showMessage('Pregão não encontrado!', 'error');
         return;
     }
+
     pregaoAtualVisualizacao = pregao;
+    
+    // Esconder tela principal e mostrar tela de visualização
     document.getElementById('mainScreen').classList.add('hidden');
     document.getElementById('viewScreen').classList.remove('hidden');
+    
+    // Atualizar título
     document.getElementById('viewScreenTitle').textContent = `Pregão Nº ${pregao.numeroPregao}`;
+    
+    // Renderizar apenas a primeira aba (as outras serão renderizadas quando o usuário clicar)
     renderTabGeral(pregao);
+    
+    // Resetar para primeira aba
     switchViewTab(0);
 };
 
@@ -393,78 +481,101 @@ window.voltarParaPregoes = function() {
     pregaoAtualVisualizacao = null;
 };
 
-// ============================================
-// ABA GERAL - SELECIONÁVEIS CLICÁVEIS
-// ============================================
 function renderTabGeral(pregao) {
     const container = document.getElementById('view-tab-geral');
     if (!container) return;
-    const s = pregao.selecionaveis || {};
+
+    const selecionaveis = pregao.selecionaveis || {};
+    
     container.innerHTML = `
         <div style="padding: 1rem 0;">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Vendedor</label>
-                    <input type="text" value="${pregao.vendedor || ''}" disabled style="background: var(--bg-card);">
+            <form id="geralForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Vendedor</label>
+                        <input type="text" id="geral_vendedor" value="${pregao.vendedor || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>UASG</label>
+                        <input type="text" id="geral_uasg" value="${pregao.uasg || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Órgão</label>
+                        <input type="text" id="geral_orgao" value="${pregao.orgao || ''}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Cidade-UF</label>
+                        <input type="text" id="geral_cidadeUf" value="${pregao.cidadeUf || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="text" id="geral_telefone" value="${pregao.telefone || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
+                    <div class="form-group">
+                        <label>E-mail</label>
+                        <input type="email" id="geral_email" value="${pregao.email || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
+                    <div class="form-group">
+                        <label>Data</label>
+                        <input type="text" id="geral_data" value="${formatDate(pregao.data)}" disabled style="background: var(--bg-card);">
+                    </div>
+                    <div class="form-group">
+                        <label>Modo de Disputa</label>
+                        <input type="text" id="geral_modoDisputa" value="${pregao.modoDisputa || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>UASG</label>
-                    <input type="text" value="${pregao.uasg || ''}" disabled style="background: var(--bg-card);">
+                
+                <div style="margin: 2rem 0;">
+                    <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Selecionáveis:</label>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
+                        <div class="seleccionavel ${selecionaveis.certificadoIbama ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'certificadoIbama')">
+                            CERTIFICADO IBAMA/CTF
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.registroPreco ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'registroPreco')">
+                            REGISTRO DE PREÇO
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.instalacao ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'instalacao')">
+                            INSTALAÇÃO OU INSPEÇÃO
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.visitaTecnica ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'visitaTecnica')">
+                            VISITA TÉCNICA
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.amostra ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'amostra')">
+                            AMOSTRA
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.atestado ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'atestado')">
+                            ATESTADO DE CAPACIDADE TÉCNICA
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.cadastrarAcima ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'cadastrarAcima')">
+                            CADASTRAR ACIMA DO ESTIMADO
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.banco ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'banco')">
+                            BANCO
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.garantia ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'garantia')">
+                            GARANTIA DE PROPOSTA
+                        </div>
+                        <div class="seleccionavel ${selecionaveis.icms ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'icms')">
+                            INFORMAÇÃO ICMS: DIFAL - EQUALIZAÇÃO
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Órgão</label>
-                    <input type="text" value="${pregao.orgao || ''}" disabled style="background: var(--bg-card);">
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Validade da Proposta</label>
+                        <input type="text" id="sel_validade" value="${selecionaveis.validade || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo de Entrega</label>
+                        <input type="text" id="sel_prazoEntrega" value="${selecionaveis.prazoEntrega || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
+                    <div class="form-group">
+                        <label>Prazo de Pagamento</label>
+                        <input type="text" id="sel_prazoPagamento" value="${selecionaveis.prazoPagamento || ''}" onchange="autoSaveGeral(${pregao.id})">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label>Cidade-UF</label>
-                    <input type="text" id="geral_cidadeUf" value="${pregao.cidadeUf || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-                <div class="form-group">
-                    <label>Telefone</label>
-                    <input type="text" id="geral_telefone" value="${pregao.telefone || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="geral_email" value="${pregao.email || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-                <div class="form-group">
-                    <label>Data</label>
-                    <input type="text" value="${formatDate(pregao.data)}" disabled style="background: var(--bg-card);">
-                </div>
-                <div class="form-group">
-                    <label>Modo de Disputa</label>
-                    <input type="text" id="geral_modoDisputa" value="${pregao.modoDisputa || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-            </div>
-            <div style="margin: 2rem 0;">
-                <label style="display: block; margin-bottom: 1rem; font-weight: 600;">Selecionáveis:</label>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem;">
-                    <div class="seleccionavel ${s.certificadoIbama ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'certificadoIbama')">CERTIFICADO IBAMA/CTF</div>
-                    <div class="seleccionavel ${s.registroPreco ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'registroPreco')">REGISTRO DE PREÇO</div>
-                    <div class="seleccionavel ${s.instalacao ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'instalacao')">INSTALAÇÃO OU INSPEÇÃO</div>
-                    <div class="seleccionavel ${s.visitaTecnica ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'visitaTecnica')">VISITA TÉCNICA</div>
-                    <div class="seleccionavel ${s.amostra ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'amostra')">AMOSTRA</div>
-                    <div class="seleccionavel ${s.atestado ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'atestado')">ATESTADO DE CAPACIDADE TÉCNICA</div>
-                    <div class="seleccionavel ${s.cadastrarAcima ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'cadastrarAcima')">CADASTRAR ACIMA DO ESTIMADO</div>
-                    <div class="seleccionavel ${s.banco ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'banco')">BANCO</div>
-                    <div class="seleccionavel ${s.garantia ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'garantia')">GARANTIA DE PROPOSTA</div>
-                    <div class="seleccionavel ${s.icms ? 'active' : ''}" onclick="toggleSeleccionavel(${pregao.id}, 'icms')">INFORMAÇÃO ICMS: DIFAL - EQUALIZAÇÃO</div>
-                </div>
-            </div>
-            <div class="form-grid">
-                <div class="form-group">
-                    <label>Validade da Proposta</label>
-                    <input type="text" id="sel_validade" value="${s.validade || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-                <div class="form-group">
-                    <label>Prazo de Entrega</label>
-                    <input type="text" id="sel_prazoEntrega" value="${s.prazoEntrega || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-                <div class="form-group">
-                    <label>Prazo de Pagamento</label>
-                    <input type="text" id="sel_prazoPagamento" value="${s.prazoPagamento || ''}" onchange="autoSaveGeral(${pregao.id})">
-                </div>
-            </div>
+            </form>
         </div>
     `;
 }
@@ -472,175 +583,144 @@ function renderTabGeral(pregao) {
 window.toggleSeleccionavel = function(id, campo) {
     const pregao = pregoes.find(p => p.id == id);
     if (!pregao) return;
+
     pregao.selecionaveis[campo] = !pregao.selecionaveis[campo];
     renderTabGeral(pregao);
-    showMessage('✓ Salvo', 'success');
+    showMessage('Salvo automaticamente!', 'success');
 };
 
 window.autoSaveGeral = function(id) {
     const pregao = pregoes.find(p => p.id == id);
     if (!pregao) return;
-    pregao.cidadeUf = document.getElementById('geral_cidadeUf')?.value.trim() || '';
-    pregao.telefone = document.getElementById('geral_telefone')?.value.trim() || '';
-    pregao.email = document.getElementById('geral_email')?.value.trim() || '';
-    pregao.modoDisputa = document.getElementById('geral_modoDisputa')?.value.trim() || '';
-    pregao.selecionaveis.validade = document.getElementById('sel_validade')?.value.trim() || '';
-    pregao.selecionaveis.prazoEntrega = document.getElementById('sel_prazoEntrega')?.value.trim() || '';
-    pregao.selecionaveis.prazoPagamento = document.getElementById('sel_prazoPagamento')?.value.trim() || '';
-    showMessage('✓ Salvo', 'success');
+
+    pregao.cidadeUf = document.getElementById('geral_cidadeUf').value.trim();
+    pregao.telefone = document.getElementById('geral_telefone').value.trim();
+    pregao.email = document.getElementById('geral_email').value.trim();
+    pregao.modoDisputa = document.getElementById('geral_modoDisputa').value.trim();
+    
+    pregao.selecionaveis.validade = document.getElementById('sel_validade').value.trim();
+    pregao.selecionaveis.prazoEntrega = document.getElementById('sel_prazoEntrega').value.trim();
+    pregao.selecionaveis.prazoPagamento = document.getElementById('sel_prazoPagamento').value.trim();
+
+    showMessage('Salvo automaticamente!', 'success');
 };
 
-// ============================================
-// ABA ITENS - TABELA COM AUTO-SAVE E VENDA UNT = CUSTO x 149%
-// ============================================
 function renderTabItens(pregao) {
     const container = document.getElementById('view-tab-itens');
     if (!container) return;
+
     container.innerHTML = `
         <div style="padding: 1rem 0;">
             <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
                 <button type="button" class="success small" onclick="adicionarItem(${pregao.id})">+ Adicionar Item</button>
                 <button type="button" class="secondary small" onclick="adicionarIntervalo(${pregao.id})">Adicionar Intervalo</button>
             </div>
+            
             <div style="overflow-x: auto;">
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 40px;">✓</th>
+                            <th style="width: 40px; text-align: center;">✓</th>
                             <th style="width: 60px;">ITEM</th>
                             <th style="min-width: 250px;">DESCRIÇÃO</th>
                             <th style="width: 80px;">QTD</th>
                             <th style="width: 80px;">UND</th>
                             <th style="width: 100px;">MARCA</th>
                             <th style="width: 100px;">MODELO</th>
-                            <th style="width: 120px; background: rgba(255, 243, 205, 0.2);">EST. UNT</th>
-                            <th style="width: 120px; background: rgba(255, 243, 205, 0.2);">EST. TOTAL</th>
+                            <th style="width: 120px; background: #fff3cd;">EST. UNT</th>
+                            <th style="width: 120px; background: #fff3cd;">EST. TOTAL</th>
                             <th style="width: 120px;">CUSTO UNT</th>
                             <th style="width: 120px;">CUSTO TOTAL</th>
-                            <th style="width: 120px; background: rgba(255, 232, 204, 0.2);">VENDA UNT</th>
+                            <th style="width: 120px; background: #ffe8cc;">VENDA UNT</th>
                             <th style="width: 120px;">VENDA TOTAL</th>
-                            <th style="width: 80px;">AÇÕES</th>
+                            <th style="width: 140px; text-align: center;">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody id="items-body-${pregao.id}"></tbody>
                 </table>
             </div>
-            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px;">
+            
+            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--bg-card); border-radius: 8px; border: 1px solid var(--border-color);">
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; font-weight: 600;">
-                    <div>TOTAL ESTIMADO: <span id="total-estimado-${pregao.id}" style="color: #f59e0b;">R$ 0,00</span></div>
-                    <div>TOTAL CUSTO: <span id="total-custo-${pregao.id}">R$ 0,00</span></div>
-                    <div>TOTAL VENDA: <span id="total-venda-${pregao.id}" style="color: #22c55e;">R$ 0,00</span></div>
+                    <div>
+                        <span>TOTAL ESTIMADO:</span>
+                        <span id="total-estimado-${pregao.id}" style="margin-left: 0.5rem; color: var(--warning-color);">R$ 0,00</span>
+                    </div>
+                    <div>
+                        <span>TOTAL CUSTO:</span>
+                        <span id="total-custo-${pregao.id}" style="margin-left: 0.5rem;">R$ 0,00</span>
+                    </div>
+                    <div>
+                        <span>TOTAL VENDA:</span>
+                        <span id="total-venda-${pregao.id}" style="margin-left: 0.5rem; color: var(--success-color);">R$ 0,00</span>
+                    </div>
                 </div>
             </div>
         </div>
     `;
+
     renderizarItens(pregao.id);
 }
 
 function renderizarItens(pregaoId) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
     const tbody = document.getElementById(`items-body-${pregaoId}`);
     if (!tbody) return;
-    tbody.innerHTML = pregao.itens.map((item, idx) => {
-        const qtd = parseFloat(item.quantidade) || 0;
-        const estUnt = parseFloat(item.estimadoUnt) || 0;
-        const custoUnt = parseFloat(item.custoUnt) || 0;
-        const vendaUnt = parseFloat(item.vendaUnt) || 0;
-        const estTotal = estUnt * qtd;
-        const custoTotal = custoUnt * qtd;
-        const vendaTotal = vendaUnt * qtd;
-        const excedeEstimado = vendaUnt > estUnt;
-        const rowClass = item.ganho ? 'item-ganho' : (excedeEstimado ? 'excede-estimado' : '');
+
+    tbody.innerHTML = pregao.itens.map((item, index) => {
+        const estimadoTotal = (item.estimadoUnt || 0) * (item.quantidade || 0);
+        const custoTotal = (item.custoUnt || 0) * (item.quantidade || 0);
+        const vendaTotal = (item.vendaUnt || 0) * (item.quantidade || 0);
+        const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
+        
         return `
-            <tr class="${rowClass}">
+            <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}" style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}">
                 <td style="text-align: center;">
                     <div class="checkbox-wrapper">
-                        <input type="checkbox" id="chk-${pregaoId}-${idx}" ${item.ganho ? 'checked' : ''} onchange="toggleItemGanho(${pregaoId}, ${idx})" class="styled-checkbox">
-                        <label for="chk-${pregaoId}-${idx}" class="checkbox-label-styled"></label>
+                        <input 
+                            type="checkbox" 
+                            id="item-check-${pregaoId}-${index}"
+                            ${item.ganho ? 'checked' : ''}
+                            onchange="toggleItemGanho(${pregaoId}, ${index})"
+                            class="styled-checkbox"
+                        >
+                        <label for="item-check-${pregaoId}-${index}" class="checkbox-label-styled"></label>
                     </div>
                 </td>
                 <td style="text-align: center;"><strong>${item.numero}</strong></td>
-                <td><textarea rows="2" oninput="atualizarItem(${pregaoId}, ${idx}, 'descricao', this.value)" style="width:100%;padding:6px;border:1px solid var(--border-color);border-radius:4px;background:var(--input-bg);color:var(--text-primary);font-size:0.85rem;resize:vertical;font-family:inherit;">${item.descricao || ''}</textarea></td>
-                <td><input type="text" value="${qtd.toFixed(2)}" oninput="atualizarNumerico(${pregaoId}, ${idx}, 'quantidade', this.value)" style="width:100%;padding:6px;text-align:right;"></td>
-                <td><input type="text" value="${item.unidade || ''}" oninput="atualizarItem(${pregaoId}, ${idx}, 'unidade', this.value)" style="width:100%;padding:6px;"></td>
-                <td><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${idx}, 'marca', this.value)" style="width:100%;padding:6px;"></td>
-                <td><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${idx}, 'modelo', this.value)" style="width:100%;padding:6px;"></td>
-                <td style="background: rgba(255, 243, 205, 0.2);"><input type="text" value="${estUnt.toFixed(2)}" oninput="atualizarNumerico(${pregaoId}, ${idx}, 'estimadoUnt', this.value)" style="width:100%;padding:6px;text-align:right;"></td>
-                <td style="background: rgba(255, 243, 205, 0.2);"><input type="text" value="R$ ${estTotal.toFixed(2)}" readonly style="width:100%;padding:6px;background:var(--bg-card);text-align:right;"></td>
-                <td><input type="text" value="${custoUnt.toFixed(2)}" oninput="atualizarCustoUnt(${pregaoId}, ${idx}, this.value)" style="width:100%;padding:6px;text-align:right;"></td>
-                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width:100%;padding:6px;background:var(--bg-card);text-align:right;"></td>
-                <td style="background: rgba(255, 232, 204, 0.2);"><input type="text" value="${vendaUnt.toFixed(2)}" oninput="atualizarVendaUnt(${pregaoId}, ${idx}, this.value)" style="width:100%;padding:6px;text-align:right;"></td>
-                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width:100%;padding:6px;background:var(--bg-card);text-align:right;"></td>
-                <td style="text-align:center;"><button class="action-btn delete" onclick="excluirItem(${pregaoId}, ${idx})">🗑</button></td>
+                <td><textarea rows="2" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.85rem; resize: vertical; font-family: inherit;" onchange="atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)">${item.descricao || ''}</textarea></td>
+                <td><input type="number" step="0.01" value="${item.quantidade || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.unidade || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.marca || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.modelo || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td style="background: #fff3cd;"><input type="number" step="0.01" value="${item.estimadoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td style="background: #fff3cd;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td><input type="number" step="0.01" value="${item.custoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td style="background: #ffe8cc;"><input type="number" step="0.01" value="${item.vendaUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td class="actions-cell" style="text-align: center;">
+                    <button class="action-btn" style="background: #f59e0b;" onclick="marcarAtencao(${pregaoId}, ${index})" title="Atenção">⚠</button>
+                    <button class="action-btn delete" onclick="excluirItem(${pregaoId}, ${index})" title="Excluir">🗑</button>
+                    <button class="action-btn" style="background: var(--success-color);" onclick="marcarFeito(${pregaoId}, ${index})" title="Feito">✓</button>
+                </td>
             </tr>
         `;
     }).join('');
+
     recalcularTotais(pregaoId);
 }
-
-function recalcularTotais(pregaoId) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao) return;
-    let totEst = 0, totCusto = 0, totVenda = 0;
-    pregao.itens.forEach(i => {
-        const q = parseFloat(i.quantidade) || 0;
-        totEst += (parseFloat(i.estimadoUnt) || 0) * q;
-        totCusto += (parseFloat(i.custoUnt) || 0) * q;
-        totVenda += (parseFloat(i.vendaUnt) || 0) * q;
-    });
-    const e1 = document.getElementById(`total-estimado-${pregaoId}`);
-    const e2 = document.getElementById(`total-custo-${pregaoId}`);
-    const e3 = document.getElementById(`total-venda-${pregaoId}`);
-    if (e1) e1.textContent = `R$ ${totEst.toFixed(2)}`;
-    if (e2) e2.textContent = `R$ ${totCusto.toFixed(2)}`;
-    if (e3) e3.textContent = `R$ ${totVenda.toFixed(2)}`;
-}
-
-window.atualizarItem = function(pregaoId, idx, campo, valor) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao || !pregao.itens[idx]) return;
-    pregao.itens[idx][campo] = valor;
-};
-
-window.atualizarNumerico = function(pregaoId, idx, campo, valor) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao || !pregao.itens[idx]) return;
-    const num = parseFloat(valor.replace(',', '.')) || 0;
-    pregao.itens[idx][campo] = num;
-    renderizarItens(pregaoId);
-};
-
-window.atualizarCustoUnt = function(pregaoId, idx, valor) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao || !pregao.itens[idx]) return;
-    const custo = parseFloat(valor.replace(',', '.')) || 0;
-    pregao.itens[idx].custoUnt = custo;
-    pregao.itens[idx].vendaUnt = custo * 1.49;
-    renderizarItens(pregaoId);
-};
-
-window.atualizarVendaUnt = function(pregaoId, idx, valor) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao || !pregao.itens[idx]) return;
-    const venda = parseFloat(valor.replace(',', '.')) || 0;
-    pregao.itens[idx].vendaUnt = venda;
-    renderizarItens(pregaoId);
-};
-
-window.toggleItemGanho = function(pregaoId, idx) {
-    const pregao = pregoes.find(p => p.id == pregaoId);
-    if (!pregao || !pregao.itens[idx]) return;
-    pregao.itens[idx].ganho = !pregao.itens[idx].ganho;
-    renderizarItens(pregaoId);
-};
 
 window.adicionarItem = function(pregaoId) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
-    const novoNum = pregao.itens.length > 0 ? Math.max(...pregao.itens.map(i => i.numero)) + 1 : 1;
+
+    const novoNumero = pregao.itens.length > 0 ? Math.max(...pregao.itens.map(i => i.numero)) + 1 : 1;
+    
     pregao.itens.push({
-        numero: novoNum,
+        numero: novoNumero,
         descricao: '',
         quantidade: 1,
         unidade: 'UN',
@@ -649,27 +729,35 @@ window.adicionarItem = function(pregaoId) {
         estimadoUnt: 0,
         custoUnt: 0,
         vendaUnt: 0,
-        ganho: false
+        ganho: false,
+        atencao: false,
+        feito: false
     });
+
     renderizarItens(pregaoId);
-    showMessage('✓ Item adicionado', 'success');
+    showMessage('Item adicionado!', 'success');
 };
 
 window.adicionarIntervalo = function(pregaoId) {
     const intervalo = prompt('Digite o intervalo (ex: 1,2,5-10,15):');
     if (!intervalo) return;
+
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
     const numeros = [];
     intervalo.split(',').forEach(parte => {
         parte = parte.trim();
         if (parte.includes('-')) {
             const [inicio, fim] = parte.split('-').map(n => parseInt(n.trim()));
-            for (let i = inicio; i <= fim; i++) numeros.push(i);
+            for (let i = inicio; i <= fim; i++) {
+                numeros.push(i);
+            }
         } else {
             numeros.push(parseInt(parte));
         }
     });
+
     numeros.forEach(num => {
         if (!pregao.itens.find(i => i.numero === num)) {
             pregao.itens.push({
@@ -682,60 +770,157 @@ window.adicionarIntervalo = function(pregaoId) {
                 estimadoUnt: 0,
                 custoUnt: 0,
                 vendaUnt: 0,
-                ganho: false
+                ganho: false,
+                atencao: false,
+                feito: false
             });
         }
     });
+
     pregao.itens.sort((a, b) => a.numero - b.numero);
     renderizarItens(pregaoId);
-    showMessage(`✓ ${numeros.length} itens adicionados`, 'success');
+    showMessage(`${numeros.length} itens adicionados!`, 'success');
 };
 
-window.excluirItem = function(pregaoId, idx) {
+window.atualizarItem = function(pregaoId, index, campo, valor) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    if (campo === 'quantidade' || campo === 'estimadoUnt' || campo === 'custoUnt' || campo === 'vendaUnt') {
+        pregao.itens[index][campo] = parseFloat(valor) || 0;
+    } else {
+        pregao.itens[index][campo] = valor;
+    }
+};
+
+window.recalcularItem = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    const item = pregao.itens[index];
+    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
+    
+    if (row) {
+        const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
+        if (excedeEstimado) {
+            row.classList.add('excede-estimado');
+        } else {
+            row.classList.remove('excede-estimado');
+        }
+    }
+
+    recalcularTotais(pregaoId);
+};
+
+function recalcularTotais(pregaoId) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
+    let totalEstimado = 0;
+    let totalCusto = 0;
+    let totalVenda = 0;
+
+    pregao.itens.forEach(item => {
+        totalEstimado += (item.estimadoUnt || 0) * (item.quantidade || 0);
+        totalCusto += (item.custoUnt || 0) * (item.quantidade || 0);
+        totalVenda += (item.vendaUnt || 0) * (item.quantidade || 0);
+    });
+
+    const elemEstimado = document.getElementById(`total-estimado-${pregaoId}`);
+    const elemCusto = document.getElementById(`total-custo-${pregaoId}`);
+    const elemVenda = document.getElementById(`total-venda-${pregaoId}`);
+
+    if (elemEstimado) elemEstimado.textContent = `R$ ${totalEstimado.toFixed(2)}`;
+    if (elemCusto) elemCusto.textContent = `R$ ${totalCusto.toFixed(2)}`;
+    if (elemVenda) elemVenda.textContent = `R$ ${totalVenda.toFixed(2)}`;
+}
+
+window.toggleItemGanho = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].ganho = !pregao.itens[index].ganho;
+};
+
+window.marcarAtencao = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].atencao = !pregao.itens[index].atencao;
+    pregao.itens[index].feito = false; // Remove feito se atenção for marcada
+    renderizarItens(pregaoId);
+};
+
+window.excluirItem = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+
     if (confirm('Excluir este item?')) {
-        pregao.itens.splice(idx, 1);
+        pregao.itens.splice(index, 1);
         renderizarItens(pregaoId);
-        showMessage('✓ Item excluído', 'error');
+        showMessage('Item excluído!', 'error');
     }
+};
+
+window.marcarFeito = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].feito = !pregao.itens[index].feito;
+    pregao.itens[index].atencao = false; // Remove atenção se feito for marcado
+    renderizarItens(pregaoId);
 };
 
 function renderTabProposta(pregao) {
     const container = document.getElementById('view-tab-proposta');
     if (!container) return;
-    container.innerHTML = `<div style="padding: 1rem 0;"><p style="color: var(--text-secondary);">Funcionalidade em desenvolvimento...</p></div>`;
+
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <p style="color: var(--text-secondary); margin-bottom: 1rem;">Funcionalidade de proposta em desenvolvimento...</p>
+            <button class="success">Gerar Proposta PDF</button>
+        </div>
+    `;
 }
 
 function renderTabComprovante(pregao) {
     const container = document.getElementById('view-tab-comprovante');
     if (!container) return;
-    container.innerHTML = `<div style="padding: 1rem 0;"><p style="color: var(--text-secondary);">Funcionalidade em desenvolvimento...</p></div>`;
+
+    container.innerHTML = `
+        <div style="padding: 1rem 0;">
+            <p style="color: var(--text-secondary);">Funcionalidade de comprovante de exequibilidade em desenvolvimento...</p>
+        </div>
+    `;
 }
 
 window.switchViewTab = function(index) {
     document.querySelectorAll('#viewScreen .tab-btn').forEach((btn, i) => {
         btn.classList.toggle('active', i === index);
     });
+    
     document.querySelectorAll('#viewScreen .tab-content').forEach((content, i) => {
         content.classList.toggle('active', i === index);
     });
+    
+    // Renderizar a aba sob demanda
     if (!pregaoAtualVisualizacao) return;
+    
     if (index === 1 && !document.getElementById(`items-body-${pregaoAtualVisualizacao.id}`)?.children.length) {
         renderTabItens(pregaoAtualVisualizacao);
-    } else if (index === 2) {
+    } else if (index === 2 && !document.getElementById('view-tab-proposta').innerHTML.trim()) {
         renderTabProposta(pregaoAtualVisualizacao);
-    } else if (index === 3) {
+    } else if (index === 3 && !document.getElementById('view-tab-comprovante').innerHTML.trim()) {
         renderTabComprovante(pregaoAtualVisualizacao);
     }
 };
-
 // ============================================
-// BOTÃO ARQUIVOS
+// BOTÃO ARQUIVOS (MODAL SIMULANDO GOOGLE DRIVE)
 // ============================================
 window.openArquivos = function(id) {
     const pregao = pregoes.find(p => p.id == id);
     if (!pregao) return;
+
     const modalHTML = `
         <div class="modal-overlay" id="arquivosModal">
             <div class="modal-content" style="max-width: 900px;">
@@ -743,15 +928,18 @@ window.openArquivos = function(id) {
                     <h3 class="modal-title">Arquivos - Pregão Nº ${pregao.numeroPregao}</h3>
                     <button class="close-modal" onclick="closeArquivosModal()">✕</button>
                 </div>
+                
                 <div style="padding: 1rem 0;">
                     <div style="margin-bottom: 1rem; display: flex; gap: 0.5rem;">
                         <button type="button" class="success small" onclick="uploadArquivo(${id})">📁 Upload Arquivo</button>
                         <button type="button" class="secondary small" onclick="criarPasta(${id})">📂 Criar Pasta</button>
                     </div>
+                    
                     <div style="background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem;">
                         <div style="margin-bottom: 1rem; font-weight: 600; color: var(--text-secondary); font-size: 0.9rem;">
-                            📁 ${pregao.vendedor}-${pregao.data}-${pregao.uasg}-${pregao.numeroPregao}/
+                            📁 VENDEDOR-DATA-UASG-PREGÃO/${pregao.vendedor}-${pregao.data}-${pregao.uasg}-${pregao.numeroPregao}/
                         </div>
+                        
                         <div id="arquivos-list-${id}" style="min-height: 200px;">
                             <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
                                 <p>Nenhum arquivo encontrado</p>
@@ -759,16 +947,19 @@ window.openArquivos = function(id) {
                             </div>
                         </div>
                     </div>
+                    
                     <div style="margin-top: 1rem; padding: 0.75rem; background: rgba(204, 112, 0, 0.1); border-radius: 6px; font-size: 0.85rem; color: var(--text-secondary);">
                         <strong>Arquivos padrão:</strong> PROPOSTA-(UASG)-(Nº PREGÃO).PDF e COMPROVANTE DE EXEQUIBILIDADE-(UASG)-(Nº PREGÃO).PDF
                     </div>
                 </div>
+
                 <div class="modal-actions">
                     <button class="secondary" onclick="closeArquivosModal()">Fechar</button>
                 </div>
             </div>
         </div>
     `;
+
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     renderArquivos(id);
 };
@@ -776,8 +967,10 @@ window.openArquivos = function(id) {
 function renderArquivos(pregaoId) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao || !pregao.arquivos || pregao.arquivos.length === 0) return;
+
     const container = document.getElementById(`arquivos-list-${pregaoId}`);
     if (!container) return;
+
     container.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 0.5rem;">
             ${pregao.arquivos.map((arquivo, index) => `
@@ -802,44 +995,53 @@ function renderArquivos(pregaoId) {
 window.uploadArquivo = function(pregaoId) {
     const nome = prompt('Nome do arquivo (incluir extensão):');
     if (!nome) return;
+
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
     if (!pregao.arquivos) pregao.arquivos = [];
+
     pregao.arquivos.push({
         nome: nome,
         tipo: 'arquivo',
         data: new Date().toLocaleDateString('pt-BR')
     });
+
     renderArquivos(pregaoId);
-    showMessage('✓ Arquivo adicionado', 'success');
+    showMessage('Arquivo adicionado!', 'success');
 };
 
 window.criarPasta = function(pregaoId) {
     const nome = prompt('Nome da pasta:');
     if (!nome) return;
+
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
     if (!pregao.arquivos) pregao.arquivos = [];
+
     pregao.arquivos.push({
         nome: nome,
         tipo: 'pasta',
         data: new Date().toLocaleDateString('pt-BR')
     });
+
     renderArquivos(pregaoId);
-    showMessage('✓ Pasta criada', 'success');
+    showMessage('Pasta criada!', 'success');
 };
 
-window.visualizarArquivo = function() {
-    showMessage('Visualização simulada', 'success');
+window.visualizarArquivo = function(pregaoId, index) {
+    showMessage('Visualização de arquivo simulada', 'success');
 };
 
 window.excluirArquivo = function(pregaoId, index) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao) return;
+
     if (confirm('Excluir este arquivo?')) {
         pregao.arquivos.splice(index, 1);
         renderArquivos(pregaoId);
-        showMessage('✓ Arquivo excluído', 'error');
+        showMessage('Arquivo excluído!', 'error');
     }
 };
 
@@ -856,11 +1058,14 @@ function closeArquivosModal() {
 // ============================================
 function renderPregoes(pregoesToRender) {
     const container = document.getElementById('pregoesContainer');
+    
     if (!container) return;
+    
     if (!pregoesToRender || pregoesToRender.length === 0) {
         container.innerHTML = '<div style="text-align: center; padding: 2rem; color: var(--text-secondary);">Nenhum pregão encontrado</div>';
         return;
     }
+
     const table = `
         <div style="overflow-x: auto;">
             <table>
@@ -880,7 +1085,13 @@ function renderPregoes(pregoesToRender) {
                         <tr class="${p.status === 'ganho' ? 'ganho' : ''}">
                             <td style="text-align: center;">
                                 <div class="checkbox-wrapper">
-                                    <input type="checkbox" id="check-${p.id}" ${p.status === 'ganho' ? 'checked' : ''} onchange="toggleStatus(${p.id})" class="styled-checkbox">
+                                    <input 
+                                        type="checkbox" 
+                                        id="check-${p.id}"
+                                        ${p.status === 'ganho' ? 'checked' : ''}
+                                        onchange="toggleStatus(${p.id})"
+                                        class="styled-checkbox"
+                                    >
                                     <label for="check-${p.id}" class="checkbox-label-styled"></label>
                                 </div>
                             </td>
@@ -888,7 +1099,11 @@ function renderPregoes(pregoesToRender) {
                             <td><strong>${p.numeroPregao}</strong></td>
                             <td>${formatDate(p.data)}</td>
                             <td>${p.vendedor || 'N/A'}</td>
-                            <td><span class="badge ${p.status}">${p.status.toUpperCase()}</span></td>
+                            <td>
+                                <span class="badge ${p.status}">
+                                    ${p.status.toUpperCase()}
+                                </span>
+                            </td>
                             <td class="actions-cell" style="text-align: center;">
                                 <button onclick="viewPregao(${p.id})" class="action-btn view">Ver</button>
                                 <button onclick="editPregao(${p.id})" class="action-btn edit">Editar</button>
@@ -901,6 +1116,7 @@ function renderPregoes(pregoesToRender) {
             </table>
         </div>
     `;
+    
     container.innerHTML = table;
 }
 
@@ -916,12 +1132,15 @@ function formatDate(dateString) {
 function showMessage(message, type) {
     const oldMessages = document.querySelectorAll('.floating-message');
     oldMessages.forEach(msg => msg.remove());
+    
     const messageDiv = document.createElement('div');
     messageDiv.className = `floating-message ${type}`;
     messageDiv.textContent = message;
+    
     document.body.appendChild(messageDiv);
+    
     setTimeout(() => {
         messageDiv.style.animation = 'slideOut 0.3s ease forwards';
         setTimeout(() => messageDiv.remove(), 300);
-    }, 2000);
+    }, 3000);
 }
