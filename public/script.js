@@ -605,6 +605,12 @@ window.autoSaveGeral = function(id) {
     showMessage('Salvo automaticamente!', 'success');
 };
 
+// Função para auto-resize de textarea (quebra automática sem scroll)
+window.autoResizeTextarea = function(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = textarea.scrollHeight + 'px';
+};
+
 function renderTabItens(pregao) {
     const container = document.getElementById('view-tab-itens');
     if (!container) return;
@@ -620,20 +626,20 @@ function renderTabItens(pregao) {
                 <table>
                     <thead>
                         <tr>
-                            <th style="width: 40px; text-align: center;">✓</th>
-                            <th style="width: 60px;">ITEM</th>
-                            <th style="min-width: 250px;">DESCRIÇÃO</th>
-                            <th style="width: 80px;">QTD</th>
-                            <th style="width: 80px;">UND</th>
-                            <th style="width: 100px;">MARCA</th>
-                            <th style="width: 100px;">MODELO</th>
-                            <th style="width: 120px; background: #fff3cd;">EST. UNT</th>
-                            <th style="width: 120px; background: #fff3cd;">EST. TOTAL</th>
-                            <th style="width: 120px;">CUSTO UNT</th>
-                            <th style="width: 120px;">CUSTO TOTAL</th>
-                            <th style="width: 120px; background: #ffe8cc;">VENDA UNT</th>
-                            <th style="width: 120px;">VENDA TOTAL</th>
-                            <th style="width: 140px; text-align: center;">AÇÕES</th>
+                            <th style="width: 50px; text-align: center;">✓</th>
+                            <th style="width: 70px;">ITEM</th>
+                            <th style="min-width: 300px;">DESCRIÇÃO</th>
+                            <th style="width: 100px;">QTD</th>
+                            <th style="width: 100px;">UND</th>
+                            <th style="width: 130px;">MARCA</th>
+                            <th style="width: 130px;">MODELO</th>
+                            <th style="width: 130px; background: #FFFF00; color: #000;">EST. UNT</th>
+                            <th style="width: 130px; background: #FFFF00; color: #000;">EST. TOTAL</th>
+                            <th style="width: 130px;">CUSTO UNT</th>
+                            <th style="width: 130px;">CUSTO TOTAL</th>
+                            <th style="width: 130px; background: #FFA500; color: #000;">VENDA UNT</th>
+                            <th style="width: 130px;">VENDA TOTAL</th>
+                            <th style="width: 90px; text-align: center;">AÇÕES</th>
                         </tr>
                     </thead>
                     <tbody id="items-body-${pregao.id}"></tbody>
@@ -690,27 +696,30 @@ function renderizarItens(pregaoId) {
                     </div>
                 </td>
                 <td style="text-align: center;"><strong>${item.numero}</strong></td>
-                <td><textarea rows="2" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.85rem; resize: vertical; font-family: inherit;" onchange="atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)">${item.descricao || ''}</textarea></td>
-                <td><input type="number" step="0.01" value="${item.quantidade || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
-                <td><input type="text" value="${item.unidade || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; padding: 6px;"></td>
-                <td><input type="text" value="${item.marca || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; padding: 6px;"></td>
-                <td><input type="text" value="${item.modelo || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; padding: 6px;"></td>
-                <td style="background: #fff3cd;"><input type="number" step="0.01" value="${item.estimadoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
-                <td style="background: #fff3cd;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
-                <td><input type="number" step="0.01" value="${item.custoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
-                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
-                <td style="background: #ffe8cc;"><input type="number" step="0.01" value="${item.vendaUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
-                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 36px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.4;">${item.descricao || ''}</textarea></td>
+                <td><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; text-align: right; font-size: 0.9rem; word-wrap: break-word;"></td>
+                <td><input type="text" value="${item.unidade || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; padding: 8px; font-size: 0.9rem; word-wrap: break-word;"></td>
+                <td><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; padding: 8px; font-size: 0.9rem; word-wrap: break-word;"></td>
+                <td><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; padding: 8px; font-size: 0.9rem; word-wrap: break-word;"></td>
+                <td style="background: #FFFF00;"><input type="text" value="${item.estimadoUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; background: #FFFF00; text-align: right; font-size: 0.9rem;"></td>
+                <td style="background: #FFFF00;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: #FFFF00; text-align: right; font-size: 0.9rem;"></td>
+                <td><input type="text" value="${item.custoUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; text-align: right; font-size: 0.9rem;"></td>
+                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem;"></td>
+                <td style="background: #FFA500;"><input type="text" value="${item.vendaUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; background: #FFA500; text-align: right; font-size: 0.9rem;"></td>
+                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem;"></td>
                 <td class="actions-cell" style="text-align: center;">
-                    <button class="action-btn" style="background: #f59e0b;" onclick="marcarAtencao(${pregaoId}, ${index})" title="Atenção">⚠</button>
                     <button class="action-btn delete" onclick="excluirItem(${pregaoId}, ${index})" title="Excluir">🗑</button>
-                    <button class="action-btn" style="background: var(--success-color);" onclick="marcarFeito(${pregaoId}, ${index})" title="Feito">✓</button>
                 </td>
             </tr>
         `;
     }).join('');
 
     recalcularTotais(pregaoId);
+    
+    // Auto-resize textareas após renderização
+    setTimeout(() => {
+        document.querySelectorAll(`#items-body-${pregaoId} textarea`).forEach(ta => autoResizeTextarea(ta));
+    }, 0);
 }
 
 window.adicionarItem = function(pregaoId) {
