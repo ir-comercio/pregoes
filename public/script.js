@@ -623,23 +623,23 @@ function renderTabItens(pregao) {
                 <button type="button" class="danger small" onclick="excluirIntervalo(${pregao.id})">🗑 Excluir Itens</button>
             </div>
             
-            <div style="overflow-x: auto;">
-                <table>
+            <div style="overflow-x: auto; max-width: 100%;">
+                <table style="table-layout: fixed; width: 100%; max-width: 1600px;">
                     <thead>
                         <tr>
                             <th style="width: 50px; text-align: center;">✓</th>
-                            <th style="width: 70px;">ITEM</th>
-                            <th style="min-width: 300px;">DESCRIÇÃO</th>
-                            <th style="width: 120px;">QTD</th>
-                            <th style="width: 120px;">UND</th>
-                            <th style="width: 150px;">MARCA</th>
-                            <th style="width: 150px;">MODELO</th>
-                            <th style="width: 150px; background: #FFFF00; color: #000;">EST. UNT</th>
-                            <th style="width: 150px; background: #FFFF00; color: #000;">EST. TOTAL</th>
-                            <th style="width: 150px;">CUSTO UNT</th>
-                            <th style="width: 150px;">CUSTO TOTAL</th>
-                            <th style="width: 150px; background: #FFA500; color: #000;">VENDA UNT</th>
-                            <th style="width: 150px;">VENDA TOTAL</th>
+                            <th style="width: 60px;">ITEM</th>
+                            <th style="width: 250px;">DESCRIÇÃO</th>
+                            <th style="width: 100px;">QTD</th>
+                            <th style="width: 100px;">UND</th>
+                            <th style="width: 120px;">MARCA</th>
+                            <th style="width: 120px;">MODELO</th>
+                            <th style="width: 130px; background: #FFFF00; color: #000;">EST. UNT</th>
+                            <th style="width: 130px; background: #FFFF00; color: #000;">EST. TOTAL</th>
+                            <th style="width: 130px;">CUSTO UNT</th>
+                            <th style="width: 130px;">CUSTO TOTAL</th>
+                            <th style="width: 130px; background: #FFA500; color: #000;">VENDA UNT</th>
+                            <th style="width: 130px;">VENDA TOTAL</th>
                         </tr>
                     </thead>
                     <tbody id="items-body-${pregao.id}"></tbody>
@@ -696,17 +696,17 @@ function renderizarItens(pregaoId) {
                     </div>
                 </td>
                 <td style="text-align: center;"><strong>${item.numero}</strong></td>
-                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 36px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.4;">${item.descricao || ''}</textarea></td>
-                <td><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; text-align: right; font-size: 0.9rem; word-wrap: break-word;"></td>
-                <td><input type="text" value="${item.unidade || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; padding: 8px; font-size: 0.9rem; word-wrap: break-word;"></td>
-                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; min-height: 36px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.4;">${item.marca || ''}</textarea></td>
-                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; min-height: 36px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.4;">${item.modelo || ''}</textarea></td>
-                <td style="background: #FFFF00;"><input type="text" value="${item.estimadoUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; background: #FFFF00; color: #000; text-align: right; font-size: 0.9rem;"></td>
-                <td style="background: #FFFF00;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: #FFFF00; color: #000; text-align: right; font-size: 0.9rem;"></td>
-                <td><input type="text" value="${item.custoUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; text-align: right; font-size: 0.9rem; color: var(--text-primary);"></td>
-                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem; color: var(--text-primary);"></td>
-                <td style="background: #FFA500;"><input type="text" value="${item.vendaUnt || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 8px; background: #FFA500; color: #000; text-align: right; font-size: 0.9rem;"></td>
-                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width: 100%; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem; color: var(--text-primary);"></td>
+                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 32px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.85rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.3;">${item.descricao || ''}</textarea></td>
+                <td><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value)" style="width: 100%; height: 32px; padding: 6px; text-align: right; font-size: 0.85rem; box-sizing: border-box;"></td>
+                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; min-height: 32px; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.85rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.3;">${item.unidade || ''}</textarea></td>
+                <td><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; height: 32px; padding: 6px; font-size: 0.85rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
+                <td><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; height: 32px; padding: 6px; font-size: 0.85rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
+                <td style="background: #FFFF00;"><input type="text" value="${estUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value)" style="width: 100%; height: 32px; padding: 6px; background: #FFFF00; color: #000; text-align: right; font-size: 0.85rem; box-sizing: border-box; border: none;"></td>
+                <td style="background: #FFFF00;"><input type="text" value="R$ ${estTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 32px; padding: 6px; background: #FFFF00; color: #000; text-align: right; font-size: 0.85rem; border: none; box-sizing: border-box;"></td>
+                <td><input type="text" value="${custoUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value)" style="width: 100%; height: 32px; padding: 6px; text-align: right; font-size: 0.85rem; color: var(--text-primary); box-sizing: border-box;"></td>
+                <td><input type="text" value="R$ ${custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 32px; padding: 6px; background: var(--bg-card); text-align: right; font-size: 0.85rem; color: var(--text-primary); border: none; box-sizing: border-box;"></td>
+                <td style="background: #FFA500;"><input type="text" value="${vendaUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value)" style="width: 100%; height: 32px; padding: 6px; background: #FFA500; color: #000; text-align: right; font-size: 0.85rem; box-sizing: border-box; border: none;"></td>
+                <td><input type="text" value="R$ ${vendaTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 32px; padding: 6px; background: var(--bg-card); text-align: right; font-size: 0.85rem; color: var(--text-primary); border: none; box-sizing: border-box;"></td>
             </tr>
         `;
     }).join('');
@@ -792,10 +792,21 @@ window.atualizarItem = function(pregaoId, index, campo, valor) {
     const pregao = pregoes.find(p => p.id == pregaoId);
     if (!pregao || !pregao.itens[index]) return;
 
+    const item = pregao.itens[index];
+    
+    // Atualizar o campo
     if (campo === 'quantidade' || campo === 'estimadoUnt' || campo === 'custoUnt' || campo === 'vendaUnt') {
-        pregao.itens[index][campo] = parseFloat(valor) || 0;
+        item[campo] = parseFloat(valor.toString().replace(',', '.')) || 0;
+        
+        // Se mudou CUSTO UNT, calcular VENDA UNT automaticamente (149%)
+        if (campo === 'custoUnt') {
+            item.vendaUnt = item.custoUnt * 1.49;
+        }
+        
+        // RE-RENDERIZAR a tabela para mostrar os cálculos
+        renderizarItens(pregaoId);
     } else {
-        pregao.itens[index][campo] = valor;
+        item[campo] = valor;
     }
 };
 
