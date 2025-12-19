@@ -662,19 +662,19 @@ function renderTabItens(pregao) {
             <div style="overflow-x: auto; max-width: 100%; width: 100%;">
                 <table style="table-layout: fixed; width: 1600px; max-width: 100%; font-size: 0.85rem;">
                     <thead>
-                        <tr>
-                            <th style="width: 70px;">ITEM</th>
-                            <th style="width: 300px;">DESCRIÇÃO</th>
-                            <th style="width: 120px;">QTD</th>
-                            <th style="width: 120px;">UND</th>
-                            <th style="width: 140px;">MARCA</th>
-                            <th style="width: 140px;">MODELO</th>
-                            <th style="width: 140px; background: #FFFF00; color: #000;">EST. UNT</th>
-                            <th style="width: 140px; background: #FFFF00; color: #000;">EST. TOTAL</th>
-                            <th style="width: 140px;">CUSTO UNT</th>
-                            <th style="width: 140px;">CUSTO TOTAL</th>
-                            <th style="width: 140px; background: #FFA500; color: #000;">VENDA UNT</th>
-                            <th style="width: 140px;">VENDA TOTAL</th>
+                        <tr style="background: #000000;">
+                            <th style="width: 70px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">ITEM</th>
+                            <th style="width: 300px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px;">DESCRIÇÃO</th>
+                            <th style="width: 120px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">QTD</th>
+                            <th style="width: 120px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">UNIDADE</th>
+                            <th style="width: 140px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">MARCA</th>
+                            <th style="width: 140px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">MODELO</th>
+                            <th style="width: 140px; background: #FFF9C4; color: #000000; border: 1px solid #333; padding: 12px 8px; text-align: center;">ESTIMADO UNT</th>
+                            <th style="width: 140px; background: #FFF9C4; color: #000000; border: 1px solid #333; padding: 12px 8px; text-align: center;">ESTIMADO TOTAL</th>
+                            <th style="width: 140px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">CUSTO UNT</th>
+                            <th style="width: 140px; color: #FFFFFF; border: 1px solid #333; padding: 12px 8px; text-align: center;">CUSTO TOTAL</th>
+                            <th style="width: 140px; background: #FFECB3; color: #000000; border: 1px solid #333; padding: 12px 8px; text-align: center;">VENDA UNT</th>
+                            <th style="width: 140px; background: #FFECB3; color: #000000; border: 1px solid #333; padding: 12px 8px; text-align: center;">VENDA TOTAL</th>
                         </tr>
                     </thead>
                     <tbody id="items-body-${pregao.id}"></tbody>
@@ -720,24 +720,25 @@ function renderizarItens(pregaoId) {
         const custoTotal = custoUnt * qtd;
         const vendaTotal = vendaUnt * qtd;
         const excedeEstimado = vendaUnt > estUnt;
+        const corLinha = index % 2 === 0 ? '#E8F5E9' : '#FFFFFF'; // Verde claro / Branco
         
         return `
             <tr id="item-row-${pregaoId}-${index}" 
                 class="${excedeEstimado ? 'excede-estimado' : ''} ${item.ganho ? 'item-ganho' : ''}" 
-                style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}"
+                style="background: ${item.ganho ? '#C8E6C9' : corLinha};"
                 oncontextmenu="mostrarMenuContexto(event, ${pregaoId}, ${index}); return false;">
-                <td style="text-align: center; padding-left: 8px;"><strong>${item.numero}</strong></td>
-                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 50px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.5;">${item.descricao || ''}</textarea></td>
-                <td><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; box-sizing: border-box;"></td>
-                <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; min-height: 50px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.5;">${item.unidade || ''}</textarea></td>
-                <td><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; height: 50px; padding: 8px; font-size: 0.9rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
-                <td><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; height: 50px; padding: 8px; font-size: 0.9rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
-                <td style="background: #FFFF00;"><input type="text" value="${estUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'estimadoUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; background: #FFFF00; color: #000; text-align: right; font-size: 0.9rem; box-sizing: border-box; border: none;"></td>
-                <td style="background: #FFFF00;"><input type="text" value="${estimadoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'estimadoTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; background: #FFFF00; color: #000; text-align: right; font-size: 0.9rem; border: none; box-sizing: border-box;"></td>
-                <td><input type="text" value="${custoUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'custoUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; color: var(--text-primary); box-sizing: border-box;"></td>
-                <td><input type="text" value="${custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'custoTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem; color: var(--text-primary); border: none; box-sizing: border-box;"></td>
-                <td style="background: #FFA500;"><input type="text" value="${vendaUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'vendaUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; background: #FFA500; color: #000; text-align: right; font-size: 0.9rem; box-sizing: border-box; border: none;"></td>
-                <td><input type="text" value="${vendaTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'vendaTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; background: var(--bg-card); text-align: right; font-size: 0.9rem; color: var(--text-primary); border: none; box-sizing: border-box;"></td>
+                <td style="text-align: center; padding: 8px; background: ${item.ganho ? '#C8E6C9' : corLinha}; color: #000; border: 1px solid #E0E0E0;"><strong>${item.numero}</strong></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 50px; padding: 8px; border: none; background: transparent; color: #000; font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.5;">${item.descricao || ''}</textarea></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; box-sizing: border-box; border: none; background: transparent; color: #000;"></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; min-height: 50px; padding: 8px; border: none; background: transparent; color: #000; font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.5;">${item.unidade || ''}</textarea></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; height: 50px; padding: 8px; font-size: 0.9rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: none; background: transparent; color: #000;"></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; height: 50px; padding: 8px; font-size: 0.9rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: none; background: transparent; color: #000;"></td>
+                <td style="background: #FFF9C4; border: 1px solid #E0E0E0;"><input type="text" value="${estUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'estimadoUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; background: transparent; color: #000; text-align: right; font-size: 0.9rem; box-sizing: border-box; border: none;"></td>
+                <td style="background: #FFF9C4; border: 1px solid #E0E0E0;"><input type="text" value="${estimadoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'estimadoTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; background: transparent; color: #000; text-align: right; font-size: 0.9rem; border: none; box-sizing: border-box;"></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><input type="text" value="${custoUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'custoUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; color: #000; box-sizing: border-box; border: none; background: transparent;"></td>
+                <td style="background: ${item.ganho ? '#C8E6C9' : corLinha}; border: 1px solid #E0E0E0;"><input type="text" value="${custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'custoTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; color: #000; border: none; box-sizing: border-box; background: transparent;"></td>
+                <td style="background: #FFECB3; border: 1px solid #E0E0E0;"><input type="text" value="${vendaUnt.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemValor(${pregaoId}, ${index}, 'vendaUnt', this.value)" style="width: 100%; height: 50px; padding: 8px; background: transparent; color: #000; text-align: right; font-size: 0.9rem; box-sizing: border-box; border: none;"></td>
+                <td style="background: #FFECB3; border: 1px solid #E0E0E0;"><input type="text" value="${vendaTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" oninput="atualizarItemTotal(${pregaoId}, ${index}, 'vendaTotal', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; color: #000; border: none; box-sizing: border-box; background: transparent;"></td>
             </tr>
         `;
     }).join('');
