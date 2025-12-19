@@ -49,12 +49,130 @@
     box-sizing: border-box;
 }
 
+/* ANIMAÇÕES DE SLIDE */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+@keyframes slideInFromLeft {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutToLeft {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+.slide-in-right {
+    animation: slideInFromRight 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-out-right {
+    animation: slideOutToRight 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+.slide-in-left {
+    animation: slideInFromLeft 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.slide-out-left {
+    animation: slideOutToLeft 0.4s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+}
+
+/* CONTAINER DAS TELAS */
+#main-screen,
+#detail-screen {
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+#main-screen {
+    display: block;
+}
+
+#detail-screen {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-primary);
+    z-index: 10;
+}
+
 body {
     font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
     background: var(--bg-secondary);
     color: var(--text-primary);
     line-height: 1.6;
+    overflow-x: hidden;
     overflow-y: scroll;
+    position: relative;
+}
+
+/* MENU DE CONTEXTO */
+.context-menu-item {
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.context-menu-item:hover {
+    background: rgba(204, 112, 0, 0.1);
+}
+
+.context-menu-item.danger {
+    color: var(--danger-color);
+}
+
+.context-menu-item.danger:hover {
+    background: rgba(220, 38, 38, 0.1);
+}
+
+/* LINHA MARCADA COMO GANHO */
+tr.item-ganho {
+    background: rgba(34, 197, 94, 0.15) !important;
+}
+
+tr.item-ganho:hover {
+    background: rgba(34, 197, 94, 0.25) !important;
 }
 
 /* SPLASH SCREEN */
