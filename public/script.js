@@ -685,10 +685,15 @@ function renderizarItens(pregaoId) {
     if (!tbody) return;
 
     tbody.innerHTML = pregao.itens.map((item, index) => {
-        const estimadoTotal = (item.estimadoUnt || 0) * (item.quantidade || 0);
-        const custoTotal = (item.custoUnt || 0) * (item.quantidade || 0);
-        const vendaTotal = (item.vendaUnt || 0) * (item.quantidade || 0);
-        const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
+        const qtd = item.quantidade || 0;
+        const estUnt = item.estimadoUnt || 0;
+        const custoUnt = item.custoUnt || 0;
+        const vendaUnt = item.vendaUnt || 0;
+        
+        const estimadoTotal = estUnt * qtd;
+        const custoTotal = custoUnt * qtd;
+        const vendaTotal = vendaUnt * qtd;
+        const excedeEstimado = vendaUnt > estUnt;
         
         return `
             <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}" style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}">
@@ -711,7 +716,7 @@ function renderizarItens(pregaoId) {
                 <td><input type="text" value="${item.marca || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; height: 28px; padding: 4px; font-size: 0.8rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
                 <td><input type="text" value="${item.modelo || ''}" oninput="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; height: 28px; padding: 4px; font-size: 0.8rem; box-sizing: border-box; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></td>
                 <td style="background: #FFFF00;"><input type="text" value="${estUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value)" style="width: 100%; height: 28px; padding: 4px; background: #FFFF00; color: #000; text-align: right; font-size: 0.8rem; box-sizing: border-box; border: none;"></td>
-                <td style="background: #FFFF00;"><input type="text" value="R$ ${estTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 28px; padding: 4px; background: #FFFF00; color: #000; text-align: right; font-size: 0.8rem; border: none; box-sizing: border-box;"></td>
+                <td style="background: #FFFF00;"><input type="text" value="R$ ${estimadoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 28px; padding: 4px; background: #FFFF00; color: #000; text-align: right; font-size: 0.8rem; border: none; box-sizing: border-box;"></td>
                 <td><input type="text" value="${custoUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value)" style="width: 100%; height: 28px; padding: 4px; text-align: right; font-size: 0.8rem; color: var(--text-primary); box-sizing: border-box;"></td>
                 <td><input type="text" value="R$ ${custoTotal.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2})}" readonly style="width: 100%; height: 28px; padding: 4px; background: var(--bg-card); text-align: right; font-size: 0.8rem; color: var(--text-primary); border: none; box-sizing: border-box;"></td>
                 <td style="background: #FFA500;"><input type="text" value="${vendaUnt.toFixed(2)}" oninput="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value)" style="width: 100%; height: 28px; padding: 4px; background: #FFA500; color: #000; text-align: right; font-size: 0.8rem; box-sizing: border-box; border: none;"></td>
@@ -808,10 +813,15 @@ window.atualizarItem = function(pregaoId, index, campo, valor) {
         item[campo] = parseFloat(valor.toString().replace(',', '.')) || 0;
         
         // Se mudou CUSTO UNT, calcular VENDA UNT automaticamente com margem
+        // MAS somente se vendaUnt ainda não foi editado manualmente
         if (campo === 'custoUnt') {
+            // Sempre recalcula quando custo muda
             const margem = pregao.margemVenda || 149;
             item.vendaUnt = item.custoUnt * (margem / 100);
         }
+        
+        // Se usuário editou VENDA UNT manualmente, NÃO recalcular
+        // O valor manual fica salvo e será usado nos cálculos
         
         // RE-RENDERIZAR a tabela para mostrar os cálculos
         renderizarItens(pregaoId);
