@@ -449,6 +449,8 @@ window.deletePregao = async function(id) {
 // ============================================
 // VISUALIZAÇÃO COMPLETA (BOTÃO VER)
 // ============================================
+let pregaoAtualVisualizacao = null;
+
 window.viewPregao = function(id) {
     const pregao = pregoes.find(p => p.id == id);
     
@@ -457,45 +459,30 @@ window.viewPregao = function(id) {
         return;
     }
 
-    openViewModal(pregao);
-};
-
-function openViewModal(pregao) {
-    const modalHTML = `
-        <div class="modal-overlay" id="viewModal">
-            <div class="modal-content" style="max-width: 1400px;">
-                <div class="modal-header">
-                    <h3 class="modal-title">Pregão Nº ${pregao.numeroPregao}</h3>
-                    <button class="close-modal" onclick="closeViewModal()">✕</button>
-                </div>
-                
-                <div class="tabs-container">
-                    <div class="tabs-nav">
-                        <button class="tab-btn active" onclick="switchViewTab(0)">Geral</button>
-                        <button class="tab-btn" onclick="switchViewTab(1)">Itens</button>
-                        <button class="tab-btn" onclick="switchViewTab(2)">Proposta</button>
-                        <button class="tab-btn" onclick="switchViewTab(3)">Comprovante</button>
-                    </div>
-
-                    <div class="tab-content active" id="view-tab-geral"></div>
-                    <div class="tab-content" id="view-tab-itens"></div>
-                    <div class="tab-content" id="view-tab-proposta"></div>
-                    <div class="tab-content" id="view-tab-comprovante"></div>
-                </div>
-
-                <div class="modal-actions">
-                    <button class="secondary" onclick="closeViewModal()">Fechar</button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    pregaoAtualVisualizacao = pregao;
+    
+    // Esconder tela principal e mostrar tela de visualização
+    document.getElementById('mainScreen').classList.add('hidden');
+    document.getElementById('viewScreen').classList.remove('hidden');
+    
+    // Atualizar título
+    document.getElementById('viewScreenTitle').textContent = `Pregão Nº ${pregao.numeroPregao}`;
+    
+    // Renderizar abas
     renderTabGeral(pregao);
     renderTabItens(pregao);
     renderTabProposta(pregao);
     renderTabComprovante(pregao);
-}
+    
+    // Resetar para primeira aba
+    switchViewTab(0);
+};
+
+window.voltarParaPregoes = function() {
+    document.getElementById('viewScreen').classList.add('hidden');
+    document.getElementById('mainScreen').classList.remove('hidden');
+    pregaoAtualVisualizacao = null;
+};
 
 function renderTabGeral(pregao) {
     const container = document.getElementById('view-tab-geral');
@@ -650,7 +637,7 @@ function renderTabItens(pregao) {
             </div>
             
             <div style="overflow-x: auto;">
-                <table class="items-table" id="items-table-${pregao.id}">
+                <table>
                     <thead>
                         <tr>
                             <th style="width: 40px; text-align: center;">✓</th>
@@ -709,23 +696,32 @@ function renderizarItens(pregaoId) {
         const excedeEstimado = (item.vendaUnt || 0) > (item.estimadoUnt || 0);
         
         return `
-            <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}">
+            <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}" style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}">
                 <td style="text-align: center;">
-                    <input type="checkbox" ${item.ganho ? 'checked' : ''} onchange="toggleItemGanho(${pregaoId}, ${index})">
+                    <div class="checkbox-wrapper">
+                        <input 
+                            type="checkbox" 
+                            id="item-check-${pregaoId}-${index}"
+                            ${item.ganho ? 'checked' : ''}
+                            onchange="toggleItemGanho(${pregaoId}, ${index})"
+                            class="styled-checkbox"
+                        >
+                        <label for="item-check-${pregaoId}-${index}" class="checkbox-label-styled"></label>
+                    </div>
                 </td>
-                <td style="text-align: center;">${item.numero}</td>
-                <td><textarea rows="2" onchange="atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)">${item.descricao || ''}</textarea></td>
-                <td><input type="number" step="0.01" value="${item.quantidade || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})"></td>
-                <td><input type="text" value="${item.unidade || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)"></td>
-                <td><input type="text" value="${item.marca || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)"></td>
-                <td><input type="text" value="${item.modelo || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)"></td>
-                <td style="background: #fff3cd;"><input type="number" step="0.01" value="${item.estimadoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
-                <td style="background: #fff3cd;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly></td>
-                <td><input type="number" step="0.01" value="${item.custoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
-                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly></td>
-                <td style="background: #ffe8cc;"><input type="number" step="0.01" value="${item.vendaUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})"></td>
-                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly></td>
-                <td style="text-align: center;">
+                <td style="text-align: center;"><strong>${item.numero}</strong></td>
+                <td><textarea rows="2" style="width: 100%; padding: 6px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.85rem; resize: vertical; font-family: inherit;" onchange="atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)">${item.descricao || ''}</textarea></td>
+                <td><input type="number" step="0.01" value="${item.quantidade || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.unidade || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'unidade', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.marca || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'marca', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="${item.modelo || ''}" onchange="atualizarItem(${pregaoId}, ${index}, 'modelo', this.value)" style="width: 100%; padding: 6px;"></td>
+                <td style="background: #fff3cd;"><input type="number" step="0.01" value="${item.estimadoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'estimadoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td style="background: #fff3cd;"><input type="text" value="R$ ${estimadoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td><input type="number" step="0.01" value="${item.custoUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'custoUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="R$ ${custoTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td style="background: #ffe8cc;"><input type="number" step="0.01" value="${item.vendaUnt || 0}" onchange="atualizarItem(${pregaoId}, ${index}, 'vendaUnt', this.value); recalcularItem(${pregaoId}, ${index})" style="width: 100%; padding: 6px;"></td>
+                <td><input type="text" value="R$ ${vendaTotal.toFixed(2)}" readonly style="width: 100%; padding: 6px; background: var(--bg-card);"></td>
+                <td class="actions-cell" style="text-align: center;">
                     <button class="action-btn" style="background: #f59e0b;" onclick="marcarAtencao(${pregaoId}, ${index})" title="Atenção">⚠</button>
                     <button class="action-btn delete" onclick="excluirItem(${pregaoId}, ${index})" title="Excluir">🗑</button>
                     <button class="action-btn" style="background: var(--success-color);" onclick="marcarFeito(${pregaoId}, ${index})" title="Feito">✓</button>
@@ -867,10 +863,12 @@ window.toggleItemGanho = function(pregaoId, index) {
 };
 
 window.marcarAtencao = function(pregaoId, index) {
-    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
-    if (row) {
-        row.style.background = row.style.background === 'rgba(220, 38, 38, 0.1)' ? '' : 'rgba(220, 38, 38, 0.1)';
-    }
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].atencao = !pregao.itens[index].atencao;
+    pregao.itens[index].feito = false; // Remove feito se atenção for marcada
+    renderizarItens(pregaoId);
 };
 
 window.excluirItem = function(pregaoId, index) {
@@ -885,10 +883,12 @@ window.excluirItem = function(pregaoId, index) {
 };
 
 window.marcarFeito = function(pregaoId, index) {
-    const row = document.getElementById(`item-row-${pregaoId}-${index}`);
-    if (row) {
-        row.style.background = row.style.background === 'rgba(34, 197, 94, 0.1)' ? '' : 'rgba(34, 197, 94, 0.1)';
-    }
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+
+    pregao.itens[index].feito = !pregao.itens[index].feito;
+    pregao.itens[index].atencao = false; // Remove atenção se feito for marcado
+    renderizarItens(pregaoId);
 };
 
 function renderTabProposta(pregao) {
@@ -914,20 +914,12 @@ function renderTabComprovante(pregao) {
     `;
 }
 
-function closeViewModal() {
-    const modal = document.getElementById('viewModal');
-    if (modal) {
-        modal.style.animation = 'fadeOut 0.2s ease forwards';
-        setTimeout(() => modal.remove(), 200);
-    }
-}
-
 window.switchViewTab = function(index) {
-    document.querySelectorAll('#viewModal .tab-btn').forEach((btn, i) => {
+    document.querySelectorAll('#viewScreen .tab-btn').forEach((btn, i) => {
         btn.classList.toggle('active', i === index);
     });
     
-    document.querySelectorAll('#viewModal .tab-content').forEach((content, i) => {
+    document.querySelectorAll('#viewScreen .tab-content').forEach((content, i) => {
         content.classList.toggle('active', i === index);
     });
 };
