@@ -167,12 +167,33 @@ body {
 }
 
 /* LINHA MARCADA COMO GANHO */
-tr.item-ganho {
-    background: rgba(34, 197, 94, 0.15) !important;
+tr.item-ganho td {
+    background: #C8E6C9 !important;
 }
 
-tr.item-ganho:hover {
-    background: rgba(34, 197, 94, 0.25) !important;
+tr.item-ganho:hover td {
+    background: #A5D6A7 !important;
+}
+
+/* TABELA ESTILO EXCEL */
+table {
+    border-collapse: collapse;
+}
+
+table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+table td {
+    vertical-align: middle;
+}
+
+table input,
+table textarea {
+    font-family: inherit;
 }
 
 /* SPLASH SCREEN */
