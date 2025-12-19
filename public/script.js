@@ -463,9 +463,21 @@ window.viewPregao = function(id) {
 
     pregaoAtualVisualizacao = pregao;
     
-    // Esconder tela principal e mostrar tela de visualização
-    document.getElementById('mainScreen').classList.add('hidden');
-    document.getElementById('viewScreen').classList.remove('hidden');
+    const mainScreen = document.getElementById('mainScreen');
+    const viewScreen = document.getElementById('viewScreen');
+    
+    // Animar saída da tela principal para a esquerda
+    mainScreen.classList.add('slide-out-left');
+    
+    // Preparar tela de detalhes (vinda da direita)
+    viewScreen.classList.remove('hidden');
+    viewScreen.classList.add('slide-in-right');
+    
+    // Após animação, esconder tela principal
+    setTimeout(() => {
+        mainScreen.classList.add('hidden');
+        mainScreen.classList.remove('slide-out-left');
+    }, 400);
     
     // Atualizar título
     document.getElementById('viewScreenTitle').textContent = `Pregão Nº ${pregao.numeroPregao}`;
@@ -478,9 +490,24 @@ window.viewPregao = function(id) {
 };
 
 window.voltarParaPregoes = function() {
-    document.getElementById('viewScreen').classList.add('hidden');
-    document.getElementById('mainScreen').classList.remove('hidden');
-    pregaoAtualVisualizacao = null;
+    const mainScreen = document.getElementById('mainScreen');
+    const viewScreen = document.getElementById('viewScreen');
+    
+    // Animar saída da tela de detalhes para a direita
+    viewScreen.classList.remove('slide-in-right');
+    viewScreen.classList.add('slide-out-right');
+    
+    // Preparar tela principal (vinda da esquerda)
+    mainScreen.classList.remove('hidden');
+    mainScreen.classList.add('slide-in-left');
+    
+    // Após animação, esconder tela de detalhes e limpar classes
+    setTimeout(() => {
+        viewScreen.classList.add('hidden');
+        viewScreen.classList.remove('slide-out-right');
+        mainScreen.classList.remove('slide-in-left');
+        pregaoAtualVisualizacao = null;
+    }, 400);
 };
 
 function renderTabGeral(pregao) {
@@ -633,22 +660,21 @@ function renderTabItens(pregao) {
             </div>
             
             <div style="overflow-x: auto; max-width: 100%; width: 100%;">
-                <table style="table-layout: fixed; width: 1300px; max-width: 100%; font-size: 0.8rem;">
+                <table style="table-layout: fixed; width: 1600px; max-width: 100%; font-size: 0.85rem;">
                     <thead>
                         <tr>
-                            <th style="width: 40px; text-align: center;">✓</th>
-                            <th style="width: 50px;">ITEM</th>
-                            <th style="width: 200px;">DESCRIÇÃO</th>
-                            <th style="width: 80px;">QTD</th>
-                            <th style="width: 80px;">UND</th>
-                            <th style="width: 100px;">MARCA</th>
-                            <th style="width: 100px;">MODELO</th>
-                            <th style="width: 110px; background: #FFFF00; color: #000;">EST. UNT</th>
-                            <th style="width: 110px; background: #FFFF00; color: #000;">EST. TOTAL</th>
-                            <th style="width: 110px;">CUSTO UNT</th>
-                            <th style="width: 110px;">CUSTO TOTAL</th>
-                            <th style="width: 110px; background: #FFA500; color: #000;">VENDA UNT</th>
-                            <th style="width: 110px;">VENDA TOTAL</th>
+                            <th style="width: 70px;">ITEM</th>
+                            <th style="width: 300px;">DESCRIÇÃO</th>
+                            <th style="width: 120px;">QTD</th>
+                            <th style="width: 120px;">UND</th>
+                            <th style="width: 140px;">MARCA</th>
+                            <th style="width: 140px;">MODELO</th>
+                            <th style="width: 140px; background: #FFFF00; color: #000;">EST. UNT</th>
+                            <th style="width: 140px; background: #FFFF00; color: #000;">EST. TOTAL</th>
+                            <th style="width: 140px;">CUSTO UNT</th>
+                            <th style="width: 140px;">CUSTO TOTAL</th>
+                            <th style="width: 140px; background: #FFA500; color: #000;">VENDA UNT</th>
+                            <th style="width: 140px;">VENDA TOTAL</th>
                         </tr>
                     </thead>
                     <tbody id="items-body-${pregao.id}"></tbody>
@@ -696,19 +722,10 @@ function renderizarItens(pregaoId) {
         const excedeEstimado = vendaUnt > estUnt;
         
         return `
-            <tr id="item-row-${pregaoId}-${index}" class="${excedeEstimado ? 'excede-estimado' : ''}" style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}">
-                <td style="text-align: center;">
-                    <div class="checkbox-wrapper">
-                        <input 
-                            type="checkbox" 
-                            id="item-check-${pregaoId}-${index}"
-                            ${item.ganho ? 'checked' : ''}
-                            onchange="toggleItemGanho(${pregaoId}, ${index})"
-                            class="styled-checkbox"
-                        >
-                        <label for="item-check-${pregaoId}-${index}" class="checkbox-label-styled"></label>
-                    </div>
-                </td>
+            <tr id="item-row-${pregaoId}-${index}" 
+                class="${excedeEstimado ? 'excede-estimado' : ''} ${item.ganho ? 'item-ganho' : ''}" 
+                style="${item.atencao ? 'background: rgba(220, 38, 38, 0.1);' : item.feito ? 'background: rgba(34, 197, 94, 0.1);' : ''}"
+                oncontextmenu="mostrarMenuContexto(event, ${pregaoId}, ${index}); return false;">
                 <td style="text-align: center; padding-left: 8px;"><strong>${item.numero}</strong></td>
                 <td><textarea rows="1" oninput="autoResizeTextarea(this); atualizarItem(${pregaoId}, ${index}, 'descricao', this.value)" style="width: 100%; min-height: 50px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--input-bg); color: var(--text-primary); font-size: 0.9rem; resize: none; font-family: inherit; overflow: hidden; line-height: 1.5;">${item.descricao || ''}</textarea></td>
                 <td><input type="text" value="${item.quantidade || 0}" oninput="atualizarItem(${pregaoId}, ${index}, 'quantidade', this.value)" style="width: 100%; height: 50px; padding: 8px; text-align: right; font-size: 0.9rem; box-sizing: border-box;"></td>
@@ -948,6 +965,89 @@ window.toggleItemGanho = function(pregaoId, index) {
     if (!pregao || !pregao.itens[index]) return;
 
     pregao.itens[index].ganho = !pregao.itens[index].ganho;
+    renderizarItens(pregaoId);
+};
+
+// ============================================
+// MENU DE CONTEXTO (BOTÃO DIREITO)
+// ============================================
+window.mostrarMenuContexto = function(event, pregaoId, index) {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    // Se clicou em um input/textarea, não mostrar menu
+    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+        return true;
+    }
+    
+    // Remover menu existente
+    const menuExistente = document.getElementById('context-menu');
+    if (menuExistente) {
+        menuExistente.remove();
+    }
+    
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao || !pregao.itens[index]) return;
+    
+    const item = pregao.itens[index];
+    
+    // Criar menu
+    const menu = document.createElement('div');
+    menu.id = 'context-menu';
+    menu.style.cssText = `
+        position: fixed;
+        top: ${event.clientY}px;
+        left: ${event.clientX}px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        z-index: 10000;
+        min-width: 180px;
+        padding: 4px 0;
+    `;
+    
+    // Opção: Marcar/Desmarcar como Ganho
+    const opcaoGanho = document.createElement('div');
+    opcaoGanho.className = 'context-menu-item';
+    opcaoGanho.innerHTML = item.ganho ? '✓ Marcar como Ganho' : 'Marcar como Ganho';
+    opcaoGanho.onclick = () => {
+        toggleItemGanho(pregaoId, index);
+        menu.remove();
+    };
+    
+    // Opção: Excluir
+    const opcaoExcluir = document.createElement('div');
+    opcaoExcluir.className = 'context-menu-item danger';
+    opcaoExcluir.innerHTML = '🗑 Excluir Item';
+    opcaoExcluir.onclick = () => {
+        excluirItemUnico(pregaoId, index);
+        menu.remove();
+    };
+    
+    menu.appendChild(opcaoGanho);
+    menu.appendChild(opcaoExcluir);
+    document.body.appendChild(menu);
+    
+    // Fechar menu ao clicar fora
+    setTimeout(() => {
+        document.addEventListener('click', function fecharMenu() {
+            menu.remove();
+            document.removeEventListener('click', fecharMenu);
+        });
+    }, 10);
+};
+
+window.excluirItemUnico = function(pregaoId, index) {
+    const pregao = pregoes.find(p => p.id == pregaoId);
+    if (!pregao) return;
+    
+    const item = pregao.itens[index];
+    if (!confirm(`Excluir item ${item.numero}?`)) return;
+    
+    pregao.itens.splice(index, 1);
+    renderizarItens(pregaoId);
+    showMessage('Item excluído!', 'success');
 };
 
 window.marcarAtencao = function(pregaoId, index) {
